@@ -168,6 +168,7 @@ initSecContext(PyObject *self, PyObject *args)
     else
     {
         raise_gss_error(maj_stat, min_stat);
+        return NULL;
     }
 }
         
@@ -221,6 +222,7 @@ wrap(PyObject *self, PyObject *args)
     else
     {
         raise_gss_error(maj_stat, min_stat);
+        return NULL;
     }
 }
 
@@ -267,6 +269,7 @@ unwrap(PyObject *self, PyObject *args)
     else
     {
         raise_gss_error(maj_stat, min_stat);
+        return NULL;
     }
 }
 
