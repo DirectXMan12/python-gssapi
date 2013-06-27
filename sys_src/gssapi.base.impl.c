@@ -17,7 +17,7 @@ importName(PyObject *self, PyObject *args)
     int name_len;
     int raw_name_type;
 
-    if(!PyArg_ParseTuple(args, "s#i", &name, &name_len, &raw_name_type))
+    if(!PyArg_ParseTuple(args, "s#|i", &name, &name_len, &raw_name_type))
         return NULL;
 
     // do stuff
