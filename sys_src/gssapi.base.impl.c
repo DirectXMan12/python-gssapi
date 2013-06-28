@@ -88,12 +88,12 @@ releaseName(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O", &name_obj))
         return NULL;
     
-    gss_name_t *name = PyCapsule_GetPointer(name_obj, NULL);
+    gss_name_t name = (gss_name_t)PyCapsule_GetPointer(name_obj, NULL);
 
     OM_uint32 maj_stat;
     OM_uint32 min_stat;
 
-    maj_stat = gss_release_name(&min_stat, name);
+    maj_stat = gss_release_name(&min_stat, &name);
 
     if (maj_stat == GSS_S_COMPLETE)
     {
@@ -106,9 +106,78 @@ releaseName(PyObject *self, PyObject *args)
     }
 }
 
+static PyObject *
+deleteSecContext(PyObject *self, PyObject *args)
+{
+    PyObject *raw_context; // capsule
+    int output_needed = 0; // boolean, default: False
+
+    if(!PyArg_ParseTuple(args, "O|i", &raw_context, &output_needed))
+        return NULL;
+
+    gss_ctx_id_t ctx = (gss_ctx_id_t)PyCapsule_GetPointer(raw_context, NULL); 
+
+    gss_buffer_desc output_token = GSS_C_EMPTY_BUFFER;
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+    
+    if (output_needed)
+    {
+        maj_stat = gss_delete_sec_context(&min_stat, &ctx, &output_token);
+    }
+    else
+    {
+        maj_stat = gss_delete_sec_context(&min_stat, &ctx, GSS_C_NO_BUFFER);
+    }
+        
+
+    if (maj_stat == GSS_S_COMPLETE)
+    {
+        if (output_needed)
+        {
+            PyObject *res = Py_BuildValue("s#", output_token.value, output_token.length);
+            gss_release_buffer(&min_stat, &output_token);
+            return res;
+        }
+        else
+        {
+            Py_RETURN_NONE;
+        }
+    }
+    else
+    {
+        raise_gss_error(maj_stat, min_stat);
+        return NULL;
+    }
+}
 
 static PyObject *
-initSecContext(PyObject *self, PyObject *args)
+getMechanismType(PyObject *self, PyObject *args)
+{
+    int raw_mech_type;
+    
+    if (!PyArg_ParseTuple(args, "i", &raw_mech_type))
+        return NULL;
+
+    gss_OID mech_type;
+    
+    switch (raw_mech_type)
+    {
+        case 0:
+            mech_type = gss_mech_krb5;
+            break;
+        default:
+            // TODO(sross): raise exception
+            mech_type = GSS_C_NO_OID;
+            break;
+    }
+
+    return Py_BuildValue("O", PyCapsule_New(mech_type, NULL, NULL));
+}
+
+
+static PyObject *
+initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
 {
     PyObject* raw_target_name; // capsule
     PyObject* raw_cred = Py_None; // capsule or default: None
@@ -120,7 +189,9 @@ initSecContext(PyObject *self, PyObject *args)
     char *raw_input_token = NULL; // not null terminated, default: None/NuLL
     int raw_input_token_len; 
 
-    if(!PyArg_ParseTuple(args, "O|OOOOIOs#", &raw_target_name, &raw_cred, &raw_ctx, &raw_mech_type, &services_list, &ttl, &raw_channel_bindings, &raw_input_token, &raw_input_token_len))
+    static char *kwlist[] = {"target_name", "cred", "context", "mech_type", "services", "time", "channel_bindings", "input_token", NULL};
+
+    if(!PyArg_ParseTupleAndKeywords(args, keywds, "O|OOOOIOs#", kwlist, &raw_target_name, &raw_cred, &raw_ctx, &raw_mech_type, &services_list, &ttl, &raw_channel_bindings, &raw_input_token, &raw_input_token_len))
         return NULL;
 
     gss_name_t target_name = (gss_name_t)PyCapsule_GetPointer(raw_target_name, NULL);
@@ -139,17 +210,17 @@ initSecContext(PyObject *self, PyObject *args)
     if (raw_cred == Py_None)
         cred = GSS_C_NO_CREDENTIAL; 
     else
-        cred = *((gss_cred_id_t*)PyCapsule_GetPointer(raw_cred, NULL));
+        cred = (gss_cred_id_t)PyCapsule_GetPointer(raw_cred, NULL);
 
     if (raw_ctx == Py_None)
         ctx = GSS_C_NO_CONTEXT;
     else
-        ctx = *((gss_ctx_id_t *)PyCapsule_GetPointer(raw_ctx, NULL));
+        ctx = (gss_ctx_id_t)PyCapsule_GetPointer(raw_ctx, NULL);
 
     if (raw_mech_type == Py_None)
         mech_type = GSS_C_NO_OID;
     else
-        mech_type = *((gss_OID*)PyCapsule_GetPointer(raw_mech_type, NULL));
+        mech_type = (gss_OID)PyCapsule_GetPointer(raw_mech_type, NULL);
     
     // deal with flags
     if (services_list == Py_None)
@@ -201,7 +272,7 @@ initSecContext(PyObject *self, PyObject *args)
             Py_INCREF(Py_False);
         }
 
-        PyObject *res = Py_BuildValue("OOs#OIO", cap_ctx, cap_mech_type, output_token.value, output_token.length, reqs_out, output_ttl, continue_needed);
+        PyObject *res = Py_BuildValue("OOOs#IO", cap_ctx, cap_mech_type, reqs_out, output_token.value, output_token.length, output_ttl, continue_needed);
         gss_release_buffer(&min_stat, &output_token);
         return res;
 
@@ -323,21 +394,23 @@ static PyMethodDef GSSAPIMethods[] = {
      "Convert a string name and type into a GSSAPI name object"},
     {"releaseName", releaseName, METH_VARARGS,
      "Release a GSSAPI name"},
-    {"initSecContext", initSecContext, METH_VARARGS,
+    {"initSecContext", initSecContext, METH_VARARGS | METH_KEYWORDS,
      "Initialize a GSS security context"},
+    {"deleteSecContext", deleteSecContext, METH_VARARGS,
+     "Release a GSS security context"},
     {"unwrap", unwrap, METH_VARARGS,
      "Unwrap and possibly decrypt a message"},
     {"wrap", wrap, METH_VARARGS,
      "Wrap and possibly encrypt a message"},
+    {"getMechanismType", getMechanismType, METH_VARARGS,
+     "convert a value from the MechType enum into a mechanism type for use with GSSAPI methods"},
     {NULL, NULL, 0, NULL} // sentinel value
 };
 
 PyMODINIT_FUNC
 initimpl(void)
 {
-    PyObject *module;
-
-    module = Py_InitModule("gssapi.base.impl", GSSAPIMethods);
+    Py_InitModule("gssapi.base.impl", GSSAPIMethods);
 
     PyObject *types_module = PyImport_ImportModule("gssapi.base.types");
     PyObject *gsserror_attr_name = PyString_FromString("GSSError");

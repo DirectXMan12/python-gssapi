@@ -32,6 +32,9 @@ class RequirementFlag(IntEnum):
     anonymous = GSS_C_ANON_FLAG
     transferable = GSS_C_TRANS_FLAG
 
+class MechType(IntEnum):
+    kerberos = 0
+
 # TODO(ross): make an error for each error return code
 class GSSError(Exception):
     def __init__(self, maj_code, min_code):

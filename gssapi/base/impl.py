@@ -26,6 +26,19 @@ def releaseName(name_obj):
     :returns: None
     """
 
+def deleteSecContext(context, output_needed=False):
+    """
+    Releases a security context
+
+    This method releases a security context, potentially providing an
+    output buffer as the result
+
+    :param context: the context to be released
+    :param bool output_needed: is an output_buffer desired?
+    :rtype: bytes or None
+    :returns: an output token, if requested (otherwise None)
+    """
+
 # TODO(sross): implement acquireCred to use with cred
 # TODO(sross): add support for non-default mechanisms
 # TODO(sross): add support for channel bindings
@@ -46,6 +59,18 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None, service
     :param bytes input_token: the input token (use None for the first call)
     :returns: a tuple containing the (potentially modified) context, the actual mechanism type used, the output token, the actual services provided, the actual TTL for this context, and whether or not a continue is needed (i.e. (context, MechType (NCI), [RequirementFlag] (NCI), bytes, TTL, continue_needed))
     :except GSSError:
+    """
+
+def getMechanismType(mech_type):
+    """
+    Converts a value from the MechType enum into a gss_OID
+
+    Converts a value from the MechType enum into a gss_OID,
+    which can be used in GSSAPI methods such as initSecContext
+
+    :param MechType mech_type: the mechanism type
+    :returns: a gss_OID capsule representing the selected mechanism type
+    """
     """
 
 def wrap(context, message, confidential=True, qop=None):
