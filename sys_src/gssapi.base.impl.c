@@ -3,11 +3,13 @@
 #include <gssapi/gssapi_krb5.h>
 #include <stdio.h>
 
+#define DEBUG(mn, str, args...) printf("  %s: " str "\n", mn, args)
+
 static void raise_gss_error(OM_uint32 maj, OM_uint32 min)
 {
     // TODO(sross): figure out how to import the needed class from the python
     //PyErr_SetObject(GssException_class, Py_BuildValue("((s:i)(s:i))", buf_maj, err_maj, buf_min, err_min));
-    printf("error %d %d", maj, min);
+    printf("gss error %d %d\n", maj, min);
 }
 
 static PyObject *
@@ -15,7 +17,7 @@ importName(PyObject *self, PyObject *args)
 {
     const char *name;  
     int name_len;
-    int raw_name_type;
+    int raw_name_type = 0; // default to hostbased_service
 
     if(!PyArg_ParseTuple(args, "s#|i", &name, &name_len, &raw_name_type))
         return NULL;
@@ -61,7 +63,7 @@ importName(PyObject *self, PyObject *args)
 
     maj_stat = gss_import_name(&min_stat, &name_token, name_type, &output_name);
 
-    if (maj_stat = GSS_S_COMPLETE)
+    if (maj_stat == GSS_S_COMPLETE)
     {
         // return a capsule
 
@@ -79,13 +81,13 @@ static PyObject *
 initSecContext(PyObject *self, PyObject *args)
 {
     PyObject* raw_target_name; // capsule
-    PyObject* raw_cred; // capsule or None
-    PyObject* raw_ctx; // capsule or None
-    PyObject* raw_mech_type; // int or None
-    PyObject* services_list; // list of ints
-    OM_uint32 ttl;
-    PyObject* raw_channel_bindings; // capsule or None
-    char *raw_input_token; // not null terminated
+    PyObject* raw_cred = Py_None; // capsule or default: None
+    PyObject* raw_ctx = Py_None; // capsule or default: None
+    PyObject* raw_mech_type = Py_None; // int or default: None
+    PyObject* services_list = PyList_New(0); // list of ints, default: []
+    OM_uint32 ttl = 0; // default: 0
+    PyObject* raw_channel_bindings = Py_None; // capsule or default: None
+    char *raw_input_token; // not null terminated, default: None/NuLL
     int raw_input_token_len; 
 
     if(!PyArg_ParseTuple(args, "O|OOOOIOs#", &raw_target_name, &raw_cred, &raw_ctx, &raw_mech_type, &services_list, &ttl, &raw_channel_bindings, &raw_input_token, &raw_input_token_len))
