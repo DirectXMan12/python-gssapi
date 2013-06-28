@@ -27,6 +27,15 @@ ext_module_ct = Extension(
     ]
 )
 
+ext_module_su = Extension(
+    'gssapi.base.status_utils',
+    extra_link_args = commands.getoutput('krb5-config --libs gssapi').split(),
+    extra_compile_args = commands.getoutput('krb5-config --cflags gssapi').split(),
+    sources = [
+        'sys_src/gssapi.base.status_utils.c'
+    ]
+)
+
 setup(
     name='PyGSSAPI',
     version='0.0.1',
@@ -36,6 +45,6 @@ setup(
     description='Python GSSAPI Wrapper',
     long_description=long_desc,
     license='LICENSE.txt',
-    ext_modules = [ext_module_b, ext_module_ct]
+    ext_modules = [ext_module_b, ext_module_ct, ext_module_su]
 )
 

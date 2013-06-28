@@ -7,11 +7,23 @@ def importName(name, name_type=NameType.hostbased_service):
     This method converts a string name and type into a 'name'
     string usable in future calls to GSSAPI.
 
+    NOTE: This name needs to have its name released when finished
+
     :param str name: the plain 'name' to obtain
     :param NameType name_type: the type of the name we are passing in
     :rtype: bytes
     :returns: the GSSAPI name string for use in other GSSAPI methods
     :except GSSError: 
+    """
+
+def releaseName(name_obj):
+    """
+    Releases a GSSAPI Name
+
+    This method releases a GSSAPI name that was allocated with importName
+
+    :param name_obj: the name object to be released
+    :returns: None
     """
 
 # TODO(sross): implement acquireCred to use with cred
@@ -70,7 +82,6 @@ def unwrap(context, message):
 # TODO(sross): implement inquireContext
 # TODO(sross): implement inquireCred (w/ support for by_mech)
 # TODO(sross): implement getDisplayName
-# TODO(sross): implement releaseName
 
 # TODO(sross): SERVER SIDE: implement acceptSecContext
 
