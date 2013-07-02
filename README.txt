@@ -20,10 +20,18 @@ Requirements
 Installation
 ============
 
-Easy Way ::
+Easy Way 
+--------
+
+.. code-block:: bash
+
     $ pip install py-gssapi
 
-From Source Repo ::
+From the Git Repo
+-----------------
+
+.. code-block:: bash
+
     $ git clone https://github.com/DirectXMan12/python-gssapi.git
     $ python setup.py build
     $ python setup.py install
@@ -64,17 +72,22 @@ follow the given format:
 Structure
 ~~~~~~~~~
 
-::
-    gssapi/
-        base/ -- includes all sub-packages automatically
-            impl (C) -- core C-API methods
-            status_utils (C) -- utilities for dealing with status codes
-            types (Py) -- Enumerations and Exception Types
+gssapi : /
+    base : /
+        *includes all sub-packages automatically*
+
+        impl : (C)
+            core C-API methods
+        status_utils : (C)
+            utilities for dealing with status codes
+        types : (Py)
+            Enumerations and Exception Types
 
 Examples
 ~~~~~~~~
 
-::
+.. code-block:: python
+
     import gssapi.base as gb
 
 TODO(sross): provide more examples
@@ -90,17 +103,22 @@ will be expanded upon in the future.
 Structure
 ~~~~~~~~~
 
-::
-    gssapi/
-        client (Py) -- basic clients
-            BasicGSSClient -- a client capable of performing basic GSS negotiation/encryption
-            BasicSASLGSSClient -- a helper class to simplify working with SASL GSSAPI
-        type_wrappers (Py) -- provides useful wrappers around some Python capsule objects
+gssapi : /
+    client : (Py)
+        *basic clients*
+
+        BasicGSSClient
+            a client capable of performing basic GSS negotiation/encryption
+        BasicSASLGSSClient
+            a helper class to simplify working with SASL GSSAPI
+    type_wrappers : (Py)
+        provides useful wrappers around some Python capsule objects
 
 Examples
 ~~~~~~~~
 
-::
+.. code-block:: python
+
     import gssapi.client as gss
     
     client = gss.BasicGSSClient('vnc@some.host', security_type='encrypted')
