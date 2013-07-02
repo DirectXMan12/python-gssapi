@@ -10,7 +10,8 @@ def importName(name, name_type=NameType.hostbased_service):
     NOTE: This name needs to have its name released when finished
 
     :param str name: the plain 'name' to obtain
-    :param NameType name_type: the type of the name we are passing in
+    :param name_type: the type of the name we are passing in
+    :type name_type: :class:`NameType`
     :rtype: bytes
     :returns: the GSSAPI name string for use in other GSSAPI methods
     :except GSSError: 
@@ -52,8 +53,9 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None, service
     :param target_name: the name of the target (commonly the server name, retrieved using importName)
     :param cred: The handle for credentials claimed (returned from acquireCred), or None to use the default initiator principal 
     :param context: The current context, or None if this is the first call
-    :param mech_type: the mechanism type (currently only the default mechanism is supported, by passing None)
-    :param [RequirementFlag] services: the requested services
+    :param mech_type: the mechanism type (None for default, otherwise a capsule from :func:`getMechanismType`)
+    :param services: the requested services
+    :type services: [:class:`RequirementFlag`]
     :param int time: the requested TTL for this context (0 uses the default TTL)
     :param channel_bindings: the requested input channel bindings (currently only None is supported)
     :param bytes input_token: the input token (use None for the first call)
@@ -65,19 +67,18 @@ def getMechanismType(mech_type):
     """
     Converts a value from the MechType enum into a gss_OID
 
-    Converts a value from the MechType enum into a gss_OID,
+    This method converts a value from the MechType enum into a gss_OID,
     which can be used in GSSAPI methods such as initSecContext
 
     :param MechType mech_type: the mechanism type
     :returns: a gss_OID capsule representing the selected mechanism type
     """
-    """
 
 def wrap(context, message, confidential=True, qop=None):
     """
-    Wrap a message
+    Wraps a message
 
-    Wraps a message with a MIC and potentially encrypts the message
+    This method wraps a message with a MIC and potentially encrypts the message
     using the requested QoP
 
     :param bytes context: the context of the current connection
@@ -93,9 +94,9 @@ def wrap(context, message, confidential=True, qop=None):
 
 def unwrap(context, message):
     """
-    Unwrap a wrapped message
+    Unwraps a wrapped message
 
-    Unwrap a message that was previously wrapped by the other party
+    This method unwraps a message that was previously wrapped by the other party
 
     :param bytes context: the context of the current connection
     :param bytes message: the input message
@@ -115,7 +116,6 @@ def unwrap(context, message):
 # Other Methods To Wrap (eventually):
 # * add_cred
 # * release_cred
-# * delete_sec_context
 # * process_context_token
 # * context_time
 # * wrap_size_limit
@@ -128,7 +128,6 @@ def unwrap(context, message):
 # * export_name
 # * duplicate_name
 # * add_oid_set_member
-# * display_status
 # * inidcate_mechs
 # * release_oid_set
 # * release_buffer
