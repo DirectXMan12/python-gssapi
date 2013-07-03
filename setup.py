@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
-from distutils.core import setup
-from distutils.core import Extension
+import setuptools
+from setuptools import setup
+from setuptools import Extension
 import sys
 import commands
 
@@ -36,11 +37,11 @@ setup(
     version='0.1.0',
     author='Solly Ross',
     author_email='sross@redhat.com',
-    packages=['gssapi', 'gssapi.test', 'gssapi.base'],
+    packages=['gssapi', 'gssapi.base'],
     description='Python GSSAPI Wrapper',
     long_description=open('README.txt').read(),
     license='LICENSE.txt',
-    ext_modules = [ext_module_b, ext_module_ct, ext_module_su]
+    ext_modules = [ext_module_b, ext_module_ct, ext_module_su],
     install_requires=[
         'flufl.enum >= 4.0'
     ]

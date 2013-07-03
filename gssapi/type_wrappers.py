@@ -18,7 +18,7 @@ class GSSName(object):
 
         :param str name: the string part of the name
         :param name_type: the type of the name
-        :type name_type: :class:`gssapi.base.NameType`
+        :type name_type: :class:`gssapi.base.types.NameType`
         """
 
         self.name_type = name_type

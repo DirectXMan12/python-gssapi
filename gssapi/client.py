@@ -13,7 +13,7 @@ class GSSClientError(Exception):
 
     This Exception represents an error which occured
     when executing the GSS Client code (as opposed to
-    :class:`GSSError`s, which are errors which occured directly
+    :class:`gssapi.base.types.GSSError`, which are errors which occured directly
     in the GSSAPI C code).
     """
     pass
@@ -25,9 +25,17 @@ class BasicGSSClient(object):
     This class implements all functionality needed to initialize a basic
     GSS connection and send/receive encrypted or signed messages.
 
+    :param str principal: the service principal to which to connect (automatically converted to a :class:`gssapi.type_wrappers.GSSName`
+    :param dbg: a method for printing debug messages (not currently used)
+    :type dbg: function(title, message)
+    :param security_type: the level of security to use
+    :type security_type: str containing enc(crypted)/conf(idential), integ(rity) or any, or just None
+    :param max_msg_size: the maximum message size for encryption/decryption
+    :type max_msg_size: int > 0 or None (for default)
+
     .. warning::
        
-       All methods in this class can potentially raise :class:`gssapi.base.GSSError`
+       All methods in this class can potentially raise :class:`gssapi.base.types.GSSError`
 
     .. attribute:: service_principal
        
@@ -66,7 +74,7 @@ class BasicGSSClient(object):
     
     .. attribute:: services
 
-       Type: [:class:`gssapi.base.RequirementFlag`]
+       Type: [:class:`gssapi.base.types.RequirementFlag`]
 
        The flags to use when creating the GSS context
 
@@ -90,18 +98,6 @@ class BasicGSSClient(object):
     """ 
     
     def __init__(self, principal, dbg=debug, security_type='encrypted', max_msg_size=None):
-        """
-        Creates a new BasicGSSClient
-
-        :param str principal: the service principal to which to connect (automatically converted to a :class:`gssapi.type_wrappers.GSSName`
-        :param dbg: a method for printing debug messages (not currently used)
-        :type dbg: function(title, message)
-        :param security_type: the level of security to use
-        :type security_type: str containing enc(crypted)/conf(idential), integ(rity) or any, or just None
-        :param max_msg_size: the maximum message size for encryption/decryption
-        :type max_msg_zie: int > 0 or None (for default)
-        """
-
         self.debug = dbg
         self.service_principal = GSSName(principal)
         self.ctx = None
@@ -126,12 +122,12 @@ class BasicGSSClient(object):
         """
         Sets the current mechanims type
 
-        This method converts a :class:`gssapi.base.MechanismType` into
+        This method converts a :class:`gssapi.base.types.MechanismType` into
         a capsule object usable by internal methods, and then sets
         :attr:`mech_type` to the resulting capsule
 
         :param mt: the desired mechanism type
-        :type mt: :class:`gssapi.base.MechanismType`
+        :type mt: :class:`gssapi.base.types.MechanismType`
         """
 
         self.mech_type = gss.getMechanismType(mt)
@@ -234,7 +230,7 @@ class SASLGSSClientError(GSSClientError):
 
     This Exception represents an error which occured
     when executing the SASL GSS Client helper code (as opposed to
-    :class:`GSSError`s, which are errors which occured directly
+    :class:`gssapi.base.types.GSSError`, which are errors which occured directly
     in the GSSAPI C code).
     """
     pass
@@ -246,6 +242,12 @@ class BasicSASLGSSClient(BasicGSSClient):
     This class contains helper code to support implementing
     the SASL GSSAPI mechanism using PyGSSAPI.
 
+    All parameters besides username are used as in :class:`BasicGSSClient`.
+    All relevant attributes are set according to the SASL GSSAPI RFC 
+    (http://tools.ietf.org/html/rfc4752).
+
+    :param str username: the user principal with which to authenticate
+
     .. attribute:: user_principal
        
        The username to use in the authentication process
@@ -256,16 +258,6 @@ class BasicSASLGSSClient(BasicGSSClient):
     """
 
     def __init__(self, username, service_principal, max_msg_size=None, *args, **kwargs):
-        """
-        Creates a new BasicSASLGSSClient
-
-        This method creates a new BasicSASLGSSClient with the given username.
-        All other parameters are used as in :class:`BasicGSSClient`.  All relevant
-        attributes are set according to the SASL GSSAPI RFC (http://tools.ietf.org/html/rfc4752).
-
-        :param str username: the user principal with which to authenticate
-        """
-
         self.user_principal = username
         self.max_msg_size = max_msg_size
         super(BasicSASLGSSClient, self).__init__(service_principal, *args, **kwargs)
