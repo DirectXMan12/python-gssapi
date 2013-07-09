@@ -82,6 +82,9 @@ importName(PyObject *self, PyObject *args)
     }
 }
 
+#define GET_CAPSULE(type, obj) (type)PyCapsule_GetPointer(obj, NULL)
+#define GET_CAPSULE_DEREF(type, obj) *((type*)PyCapsule_GetPointer(obj, NULL))
+
 static PyObject *
 releaseName(PyObject *self, PyObject *args)
 {
@@ -90,7 +93,7 @@ releaseName(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "O", &name_obj))
         return NULL;
     
-    gss_name_t name = (gss_name_t)PyCapsule_GetPointer(name_obj, NULL);
+    gss_name_t name = GET_CAPSULE(gss_name_t, name_obj);
 
     OM_uint32 maj_stat;
     OM_uint32 min_stat;
@@ -117,7 +120,7 @@ deleteSecContext(PyObject *self, PyObject *args)
     if(!PyArg_ParseTuple(args, "O|i", &raw_context, &output_needed))
         return NULL;
 
-    gss_ctx_id_t ctx = (gss_ctx_id_t)PyCapsule_GetPointer(raw_context, NULL); 
+    gss_ctx_id_t ctx = GET_CAPSULE(gss_ctx_id_t, raw_context);
 
     gss_buffer_desc output_token = GSS_C_EMPTY_BUFFER;
     OM_uint32 maj_stat;
@@ -177,6 +180,29 @@ getMechanismType(PyObject *self, PyObject *args)
     return Py_BuildValue("O", PyCapsule_New(mech_type, NULL, NULL));
 }
 
+#define CAPSULE_OR_DEFAULT(type, obj, def) ( obj == Py_None ? def : GET_CAPSULE(type, obj))
+#define CAPSULE_OR_DEFAULT_DEREF(type, obj, def) ( obj == Py_None ? def : GET_CAPSULE_DEREF(type, obj))
+
+static int
+parseFlags(PyObject *flags_list, int default_flags)
+{
+    if (flags_list == Py_None || flags_list == NULL)
+    {
+        return default_flags;
+    }
+
+    int cflags = 0;
+
+    int i;
+    for (i = 0; i < PyList_Size(flags_list); i++)
+    {
+        PyObject *raw_item = PyList_GetItem(flags_list, i);
+        int flag = PyInt_AsLong(PyNumber_Int(raw_item));
+        cflags = cflags | flag;
+    }
+    
+    return cflags;
+}
 
 static PyObject *
 initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
@@ -196,60 +222,25 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
     if(!PyArg_ParseTupleAndKeywords(args, keywds, "O|OOOOIOs#", kwlist, &raw_target_name, &raw_cred, &raw_ctx, &raw_mech_type, &services_list, &ttl, &raw_channel_bindings, &raw_input_token, &raw_input_token_len))
         return NULL;
 
-    gss_name_t target_name = (gss_name_t)PyCapsule_GetPointer(raw_target_name, NULL);
-    gss_cred_id_t cred;
-    gss_ctx_id_t ctx = GSS_C_NO_CONTEXT;
-    gss_OID mech_type;
-    OM_uint32 req_flags = 0;
-    gss_channel_bindings_t input_chan_bindings;
+    gss_name_t target_name = GET_CAPSULE(gss_name_t, raw_target_name);
+    gss_cred_id_t cred = CAPSULE_OR_DEFAULT(gss_cred_id_t, raw_cred, GSS_C_NO_CREDENTIAL);
+    gss_ctx_id_t ctx = CAPSULE_OR_DEFAULT(gss_ctx_id_t, raw_ctx, GSS_C_NO_CONTEXT);
+    gss_OID mech_type = CAPSULE_OR_DEFAULT(gss_OID, raw_mech_type, GSS_C_NO_OID);
+    OM_uint32 req_flags = parseFlags(services_list, GSS_C_MUTUAL_FLAG | GSS_C_SEQUENCE_FLAG);
+    gss_channel_bindings_t input_chan_bindings =
+        CAPSULE_OR_DEFAULT_DEREF(gss_channel_bindings_t, raw_channel_bindings, GSS_C_NO_CHANNEL_BINDINGS);
     gss_buffer_desc input_token = GSS_C_EMPTY_BUFFER;
-
-    gss_OID actual_mech_type;
-    gss_buffer_desc output_token = GSS_C_EMPTY_BUFFER;
-    OM_uint32 ret_flags;
-    OM_uint32 output_ttl;
-
-    if (raw_cred == Py_None)
-        cred = GSS_C_NO_CREDENTIAL; 
-    else
-        cred = (gss_cred_id_t)PyCapsule_GetPointer(raw_cred, NULL);
-
-    if (raw_ctx == Py_None)
-        ctx = GSS_C_NO_CONTEXT;
-    else
-        ctx = (gss_ctx_id_t)PyCapsule_GetPointer(raw_ctx, NULL);
-
-    if (raw_mech_type == Py_None)
-        mech_type = GSS_C_NO_OID;
-    else
-        mech_type = (gss_OID)PyCapsule_GetPointer(raw_mech_type, NULL);
-    
-    // deal with flags
-    if (services_list == Py_None)
-    {
-        req_flags = GSS_C_MUTUAL_FLAG | GSS_C_SEQUENCE_FLAG;
-    }
-    else
-    {
-        int i;
-        for (i = 0; i < PyList_Size(services_list); i++)
-        {
-            PyObject *raw_item = PyList_GetItem(services_list, i);
-            int flag = PyInt_AsLong(PyNumber_Int(raw_item));
-            req_flags = req_flags | flag;
-        }
-    }
-
-    if (raw_channel_bindings == Py_None)
-        input_chan_bindings = GSS_C_NO_CHANNEL_BINDINGS; 
-    else
-        input_chan_bindings = *((gss_channel_bindings_t*)PyCapsule_GetPointer(raw_channel_bindings, NULL));
 
     if (raw_input_token && *raw_input_token)
     {
         input_token.length = raw_input_token_len;
         input_token.value = raw_input_token;
     }
+
+    gss_OID actual_mech_type;
+    gss_buffer_desc output_token = GSS_C_EMPTY_BUFFER;
+    OM_uint32 ret_flags;
+    OM_uint32 output_ttl;
 
     OM_uint32 maj_stat;
     OM_uint32 min_stat;
@@ -263,9 +254,8 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
         PyObject *cap_ctx = PyCapsule_New(ctx, NULL, NULL);
         PyObject *cap_mech_type = Py_None; // TODO(sross): figure out how to instantiate this from the code
         PyObject *reqs_out = PyList_New(0); // TODO(sross): actually test for each flag and add it
-        int raw_continue_needed = maj_stat == GSS_S_CONTINUE_NEEDED;
         PyObject *continue_needed;
-        if (raw_continue_needed)
+        if (maj_stat == GSS_S_CONTINUE_NEEDED)
         {
             continue_needed = Py_True;
             Py_INCREF(Py_True);
@@ -296,18 +286,13 @@ wrap(PyObject *self, PyObject *args)
     int message_len;
     int conf_req;
     PyObject *raw_qop;
-    OM_uint32 qop_req;
 
     if(!PyArg_ParseTuple(args, "Os#|iO", &raw_ctx, &message, &message_len, &conf_req, &raw_qop))
         return NULL;
-    
-    if (raw_qop == Py_None)
-        qop_req = GSS_C_QOP_DEFAULT;
-    else
-        qop_req = PyInt_AsLong(raw_qop);
 
+    OM_uint32 qop_req = (raw_qop == Py_None) ? GSS_C_QOP_DEFAULT : PyInt_AsLong(raw_qop);
     gss_buffer_desc input_message_buffer = GSS_C_EMPTY_BUFFER;
-    gss_ctx_id_t ctx = *((gss_ctx_id_t *)PyCapsule_GetPointer(raw_ctx, NULL));
+    gss_ctx_id_t ctx = GET_CAPSULE_DEREF(gss_ctx_id_t, raw_ctx);
 
     input_message_buffer.length = message_len;
     input_message_buffer.value = message;
@@ -357,7 +342,7 @@ unwrap(PyObject *self, PyObject *args)
         return NULL;
 
     gss_buffer_desc input_message_buffer = GSS_C_EMPTY_BUFFER;
-    gss_ctx_id_t ctx = *((gss_ctx_id_t*)PyCapsule_GetPointer(raw_ctx, NULL));
+    gss_ctx_id_t ctx = GET_CAPSULE_DEREF(gss_ctx_id_t, raw_ctx);
 
     input_message_buffer.length = message_len;
     input_message_buffer.value = message;
