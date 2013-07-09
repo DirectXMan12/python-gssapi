@@ -64,7 +64,9 @@ importName(PyObject *self, PyObject *args)
 
     gss_name_t output_name;
 
-    maj_stat = gss_import_name(&min_stat, &name_token, name_type, &output_name);
+    Py_BEGIN_ALLOW_THREADS
+      maj_stat = gss_import_name(&min_stat, &name_token, name_type, &output_name);
+    Py_END_ALLOW_THREADS
 
     if (maj_stat == GSS_S_COMPLETE)
     {
@@ -252,7 +254,9 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
     OM_uint32 maj_stat;
     OM_uint32 min_stat;
 
-    maj_stat = gss_init_sec_context(&min_stat, cred, &ctx, target_name, mech_type, req_flags, ttl, input_chan_bindings, &input_token, &actual_mech_type, &output_token, &ret_flags, &output_ttl);
+    Py_BEGIN_ALLOW_THREADS
+      maj_stat = gss_init_sec_context(&min_stat, cred, &ctx, target_name, mech_type, req_flags, ttl, input_chan_bindings, &input_token, &actual_mech_type, &output_token, &ret_flags, &output_ttl);
+    Py_END_ALLOW_THREADS
 
     if (maj_stat == GSS_S_COMPLETE || maj_stat == GSS_S_CONTINUE_NEEDED)
     {
@@ -313,7 +317,9 @@ wrap(PyObject *self, PyObject *args)
     OM_uint32 maj_stat;
     OM_uint32 min_stat;
 
-    maj_stat = gss_wrap(&min_stat, ctx, conf_req, qop_req, &input_message_buffer, &conf_state, &output_message_buffer);
+    Py_BEGIN_ALLOW_THREADS
+        maj_stat = gss_wrap(&min_stat, ctx, conf_req, qop_req, &input_message_buffer, &conf_state, &output_message_buffer);
+    Py_END_ALLOW_THREADS
 
     if (maj_stat == GSS_S_COMPLETE)
     {
@@ -362,7 +368,9 @@ unwrap(PyObject *self, PyObject *args)
     OM_uint32 maj_stat;
     OM_uint32 min_stat;
 
-    maj_stat = gss_unwrap(&min_stat, ctx, &input_message_buffer, &output_message_buffer, &conf_state, &qop_state);
+    Py_BEGIN_ALLOW_THREADS
+        maj_stat = gss_unwrap(&min_stat, ctx, &input_message_buffer, &output_message_buffer, &conf_state, &qop_state);
+    Py_END_ALLOW_THREADS
 
     if (maj_stat == GSS_S_COMPLETE)
     {
