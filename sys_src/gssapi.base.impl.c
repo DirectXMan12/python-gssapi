@@ -6,6 +6,7 @@
 #define DEBUG(mn, str, args...) printf("  %s: " str "\n", mn, args)
 
 PyObject *GSSError_class;
+PyObject *RequirementFlag_class;
 
 static void raise_gss_error(OM_uint32 maj, OM_uint32 min)
 {
@@ -17,7 +18,7 @@ static void raise_gss_error(OM_uint32 maj, OM_uint32 min)
 static PyObject *
 importName(PyObject *self, PyObject *args)
 {
-    const char *name;  
+    const char *name;
     int name_len;
     int raw_name_type = 0; // default to hostbased_service
 
@@ -29,7 +30,7 @@ importName(PyObject *self, PyObject *args)
     switch(raw_name_type)
     {
         case 0:
-            name_type = GSS_C_NT_HOSTBASED_SERVICE; 
+            name_type = GSS_C_NT_HOSTBASED_SERVICE;
             break;
         case 1:
             name_type = GSS_KRB5_NT_PRINCIPAL_NAME;
@@ -77,7 +78,7 @@ importName(PyObject *self, PyObject *args)
     }
     else
     {
-        raise_gss_error(maj_stat, min_stat);        
+        raise_gss_error(maj_stat, min_stat);
         return NULL;
     }
 }
@@ -92,7 +93,7 @@ releaseName(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "O", &name_obj))
         return NULL;
-    
+
     gss_name_t name = GET_CAPSULE(gss_name_t, name_obj);
 
     OM_uint32 maj_stat;
@@ -125,7 +126,7 @@ deleteSecContext(PyObject *self, PyObject *args)
     gss_buffer_desc output_token = GSS_C_EMPTY_BUFFER;
     OM_uint32 maj_stat;
     OM_uint32 min_stat;
-    
+
     if (output_needed)
     {
         maj_stat = gss_delete_sec_context(&min_stat, &ctx, &output_token);
@@ -134,7 +135,7 @@ deleteSecContext(PyObject *self, PyObject *args)
     {
         maj_stat = gss_delete_sec_context(&min_stat, &ctx, GSS_C_NO_BUFFER);
     }
-        
+
 
     if (maj_stat == GSS_S_COMPLETE)
     {
@@ -160,12 +161,12 @@ static PyObject *
 getMechanismType(PyObject *self, PyObject *args)
 {
     int raw_mech_type;
-    
+
     if (!PyArg_ParseTuple(args, "i", &raw_mech_type))
         return NULL;
 
     gss_OID mech_type;
-    
+
     switch (raw_mech_type)
     {
         case 0:
@@ -200,8 +201,34 @@ parseFlags(PyObject *flags_list, int default_flags)
         int flag = PyInt_AsLong(PyNumber_Int(raw_item));
         cflags = cflags | flag;
     }
-    
+
     return cflags;
+}
+
+#define CHECK_AND_INIT_FLAG(name) \
+    if (cflags & GSS_C_ ## name ## _FLAG) \
+    { \
+        PyObject *argList = Py_BuildValue("I", GSS_C_ ## name ## _FLAG); \
+        PyList_Append(flag_list, \
+                      PyObject_CallObject(RequirementFlag_class, argList)); \
+        Py_DECREF(argList); \
+    }
+
+static PyObject *
+createFlagsList(int cflags)
+{
+    PyObject *flag_list = PyList_New(0);
+
+    CHECK_AND_INIT_FLAG(DELEG)
+    CHECK_AND_INIT_FLAG(MUTUAL)
+    CHECK_AND_INIT_FLAG(REPLAY)
+    CHECK_AND_INIT_FLAG(SEQUENCE)
+    CHECK_AND_INIT_FLAG(CONF)
+    CHECK_AND_INIT_FLAG(INTEG)
+    CHECK_AND_INIT_FLAG(ANON)
+    CHECK_AND_INIT_FLAG(TRANS)
+
+    return flag_list;
 }
 
 static PyObject *
@@ -215,7 +242,7 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
     OM_uint32 ttl = 0; // default: 0
     PyObject* raw_channel_bindings = Py_None; // capsule or default: None
     char *raw_input_token = NULL; // not null terminated, default: None/NuLL
-    int raw_input_token_len; 
+    int raw_input_token_len;
 
     static char *kwlist[] = {"target_name", "cred", "context", "mech_type", "services", "time", "channel_bindings", "input_token", NULL};
 
@@ -253,7 +280,7 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
     {
         PyObject *cap_ctx = PyCapsule_New(ctx, NULL, NULL);
         PyObject *cap_mech_type = Py_None; // TODO(sross): figure out how to instantiate this from the code
-        PyObject *reqs_out = PyList_New(0); // TODO(sross): actually test for each flag and add it
+        PyObject *reqs_out = createFlagsList(ret_flags);
         PyObject *continue_needed;
         if (maj_stat == GSS_S_CONTINUE_NEEDED)
         {
@@ -277,11 +304,11 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
         return NULL;
     }
 }
-        
+
 static PyObject *
 wrap(PyObject *self, PyObject *args)
 {
-    PyObject *raw_ctx; 
+    PyObject *raw_ctx;
     const char *message;
     int message_len;
     int conf_req;
@@ -296,7 +323,7 @@ wrap(PyObject *self, PyObject *args)
 
     input_message_buffer.length = message_len;
     input_message_buffer.value = message;
-    
+
     gss_buffer_desc output_message_buffer = GSS_C_EMPTY_BUFFER;
     int conf_state;
     OM_uint32 maj_stat;
@@ -334,7 +361,7 @@ wrap(PyObject *self, PyObject *args)
 static PyObject *
 unwrap(PyObject *self, PyObject *args)
 {
-    PyObject *raw_ctx; 
+    PyObject *raw_ctx;
     const char *message;
     int message_len;
 
@@ -346,7 +373,7 @@ unwrap(PyObject *self, PyObject *args)
 
     input_message_buffer.length = message_len;
     input_message_buffer.value = message;
-    
+
     gss_buffer_desc output_message_buffer = GSS_C_EMPTY_BUFFER;
     int conf_state;
     gss_qop_t qop_state;
@@ -372,7 +399,7 @@ unwrap(PyObject *self, PyObject *args)
         }
 
         PyObject *res = Py_BuildValue("s#OI", output_message_buffer.value, output_message_buffer.length, conf_state_out, qop_state);
-        gss_release_buffer(&min_stat, &output_message_buffer);    
+        gss_release_buffer(&min_stat, &output_message_buffer);
         return res;
     }
     else
@@ -406,8 +433,14 @@ initimpl(void)
     Py_InitModule("gssapi.base.impl", GSSAPIMethods);
 
     PyObject *types_module = PyImport_ImportModule("gssapi.base.types");
-    PyObject *gsserror_attr_name = PyString_FromString("GSSError");
-    GSSError_class = PyObject_GetAttr(types_module, gsserror_attr_name);
+
+        PyObject *gsserror_attr_name = PyString_FromString("GSSError");
+        GSSError_class = PyObject_GetAttr(types_module, gsserror_attr_name);
+        Py_DECREF(gsserror_attr_name); // we don't need it any more
+
+        PyObject *requirementflag_attr_name = PyString_FromString("RequirementFlag");
+        RequirementFlag_class = PyObject_GetAttr(types_module, requirementflag_attr_name);
+        Py_DECREF(requirementflag_attr_name); // we don't need it any more
+
     Py_DECREF(types_module); // we don't need it any more
-    Py_DECREF(gsserror_attr_name); // we don't need it any more
 }
