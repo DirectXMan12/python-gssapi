@@ -7,6 +7,7 @@
 
 PyObject *GSSError_class;
 PyObject *RequirementFlag_class;
+PyObject *MechType_class;
 
 static void raise_gss_error(OM_uint32 maj, OM_uint32 min)
 {
@@ -231,6 +232,26 @@ createFlagsList(int cflags)
     return flag_list;
 }
 
+#define COMPARE_OIDS(a,b) ( (a->length == b->length) && \
+                            !memcmp(a->elements, b->elements, a->length) )
+
+static PyObject *
+createMechType(gss_OID mech_type)
+{
+    if (COMPARE_OIDS(mech_type, gss_mech_krb5))
+    {
+        // return MechType.kerberos
+        PyObject *argList = Py_BuildObject("I", 0);
+        PyObject *res = PyObject_CallObject(MechType_class, argList);
+        Py_DECREF(argList);
+        return res;
+    }
+    else
+    {
+        Py_RETURN_NONE;
+    }
+}
+
 static PyObject *
 initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
 {
@@ -279,7 +300,7 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
     if (maj_stat == GSS_S_COMPLETE || maj_stat == GSS_S_CONTINUE_NEEDED)
     {
         PyObject *cap_ctx = PyCapsule_New(ctx, NULL, NULL);
-        PyObject *cap_mech_type = Py_None; // TODO(sross): figure out how to instantiate this from the code
+        PyObject *cap_mech_type = createMechType(actual_mech_type);
         PyObject *reqs_out = createFlagsList(ret_flags);
         PyObject *continue_needed;
         if (maj_stat == GSS_S_CONTINUE_NEEDED)
@@ -441,6 +462,10 @@ initimpl(void)
         PyObject *requirementflag_attr_name = PyString_FromString("RequirementFlag");
         RequirementFlag_class = PyObject_GetAttr(types_module, requirementflag_attr_name);
         Py_DECREF(requirementflag_attr_name); // we don't need it any more
+
+        PyObject *mechtype_attr_name = PyString_FromString("MechType");
+        MechType_class = PyObject_GetAttr(types_module, mechtype_attr_name);
+        Py_DECREF(mechtype_attr_name); // we don't need it any more
 
     Py_DECREF(types_module); // we don't need it any more
 }
