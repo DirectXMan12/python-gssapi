@@ -14,7 +14,7 @@ def importName(name, name_type=NameType.hostbased_service):
     :type name_type: :class:`NameType`
     :rtype: bytes
     :returns: the GSSAPI name string for use in other GSSAPI methods
-    :except GSSError: 
+    :except GSSError:
     """
 
 def releaseName(name_obj):
@@ -51,7 +51,7 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None, service
     with the given parameters.
 
     :param target_name: the name of the target (commonly the server name, retrieved using importName)
-    :param cred: The handle for credentials claimed (returned from acquireCred), or None to use the default initiator principal 
+    :param cred: The handle for credentials claimed (returned from acquireCred), or None to use the default initiator principal
     :param context: The current context, or None if this is the first call
     :param mech_type: the mechanism type (None for default, otherwise a capsule from :func:`getMechanismType`)
     :param services: the requested services
@@ -59,7 +59,7 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None, service
     :param int time: the requested TTL for this context (0 uses the default TTL)
     :param channel_bindings: the requested input channel bindings (currently only None is supported)
     :param bytes input_token: the input token (use None for the first call)
-    :returns: a tuple containing the (potentially modified) context, the actual mechanism type used, the output token, the actual services provided, the actual TTL for this context, and whether or not a continue is needed (i.e. (context, MechType (NCI), [RequirementFlag] (NCI), bytes, TTL, continue_needed))
+    :returns: a tuple containing the (potentially modified) context, the actual mechanism type used, the output token, the actual services provided, the actual TTL for this context, and whether or not a continue is needed (i.e. (context, MechType, [RequirementFlag], bytes, TTL, continue_needed))
     :except GSSError:
     """
 
