@@ -4,8 +4,10 @@ import struct
 import sys
 from gssapi.type_wrappers import GSSName
 
+
 def debug(p, v):
     print("{0}: {1}".format(p.upper(), v), file=sys.stderr)
+
 
 class GSSClientError(Exception):
     """
@@ -13,10 +15,11 @@ class GSSClientError(Exception):
 
     This Exception represents an error which occured
     when executing the GSS Client code (as opposed to
-    :class:`gssapi.base.types.GSSError`, which are errors which occured directly
-    in the GSSAPI C code).
+    :class:`gssapi.base.types.GSSError`, which are errors
+    which occured directly in the GSSAPI C code).
     """
     pass
+
 
 class BasicGSSClient(object):
     """
@@ -25,53 +28,60 @@ class BasicGSSClient(object):
     This class implements all functionality needed to initialize a basic
     GSS connection and send/receive encrypted or signed messages.
 
-    :param str principal: the service principal to which to connect (automatically converted to a :class:`gssapi.type_wrappers.GSSName`
+    :param str principal: the service principal to which to connect
+                          (automatically converted to a
+                          :class:`gssapi.type_wrappers.GSSName`)
     :param dbg: a method for printing debug messages (not currently used)
     :type dbg: function(title, message)
     :param security_type: the level of security to use
-    :type security_type: str containing enc(crypted)/conf(idential), integ(rity) or any, or just None
+    :type security_type: str containing enc(crypted)/conf(idential),
+                         integ(rity) or any, or just None
     :param max_msg_size: the maximum message size for encryption/decryption
     :type max_msg_size: int > 0 or None (for default)
 
     .. warning::
-       
-       All methods in this class can potentially raise :class:`gssapi.base.types.GSSError`
+
+       All methods in this class can potentially raise
+       :class:`gssapi.base.types.GSSError`
 
     .. attribute:: service_principal
-       
-       The service principal to which we are connecting (as a :class:`gssapi.type_wrappers.GSSName`)
+
+       The service principal to which we are connecting
+       (as a :class:`gssapi.type_wrappers.GSSName`)
 
     .. attribute:: ctx
-       
+
        Type: Capsule
 
        The internal GSS context object
-    
+
     .. attribute:: token
-       
+
        Type: bytes
-       
-       The last returned token from one of the token-manipulation methods 
-    
+
+       The last returned token from one of the token-manipulation methods
+
     .. attribute:: ttl
-       
+
        Type: int >= 0
 
        The desired time-to-live for the GSS context object
 
     .. attribute:: last_ttl
-        
+
        Type: int > 0
 
-       The actual amount of time for which the current GSS context object will be valid
+       The actual amount of time for which the current
+       GSS context object will be valid
 
     .. attribute:: qop
-        
+
        Type: int > 0 or None
 
-       The current Quality of Protection being used in the encryption/decryption process
-       (set this to the desired QoP, or None for default, to attempt to use that QoP)
-    
+       The current Quality of Protection being used in the
+       encryption/decryption process (set this to the desired QoP, or
+       None for default, to attempt to use that QoP)
+
     .. attribute:: services
 
        Type: [:class:`gssapi.base.types.RequirementFlag`]
@@ -83,22 +93,24 @@ class BasicGSSClient(object):
        Type: TBD or None
 
        .. warning::
-          
+
           Not Currently Implemented
-    
+
     .. attribute:: mech_type
-        
+
        Type: Capsule or None
 
-       Represents the desired mechanism type to be used (None uses the default type).
-       
+       Represents the desired mechanism type to be used
+       (None uses the default type).
+
        .. seealso::
 
           Function :func:`resolveMechType`
-    """ 
-    
-    def __init__(self, principal, dbg=debug, security_type='encrypted', max_msg_size=None):
-        self.debug = dbg
+    """
+
+    def __init__(self, principal,
+                 security_type='encrypted', max_msg_size=None):
+
         self.service_principal = GSSName(principal)
         self.ctx = None
         self.token = None
@@ -140,14 +152,17 @@ class BasicGSSClient(object):
         initializes the corresponding security context
 
         :rtype: bytes
-        :returns: the token created in the process of initializing the security context
+        :returns: the token created in the process of
+                  initializing the security context
         """
 
-        self.ctx, _, _, self.token, self.last_ttl, _ = gss.initSecContext(self.service_principal.capsule,
-                                                                          services=self.services,
-                                                                          channel_bindings=self.channel_bindings,
-                                                                          mech_type=self.mech_type,
-                                                                          time=self.ttl)
+        resp = gss.initSecContext(self.service_principal.capsule,
+                                  services=self.services,
+                                  channel_bindings=self.channel_bindings,
+                                  mech_type=self.mech_type,
+                                  time=self.ttl)
+
+        (self.ctx, _, _, self.token, self.last_ttl, _) = resp
         return self.token
 
     def processServerToken(self, server_tok):
@@ -162,15 +177,17 @@ class BasicGSSClient(object):
         :returns: the token resulting from updating the security context
         """
 
-        self.ctx, _, _, self.token, self.last_ttl, _ = gss.initSecContext(self.service_principal.capsule,
-                                                                          context=self.ctx,
-                                                                          input_token=server_tok,
-                                                                          services=self.services,
-                                                                          channel_bindings=self.channel_bindings,
-                                                                          mech_type=self.mech_type,
-                                                                          time=self.ttl)
+        resp = gss.initSecContext(self.service_principal.capsule,
+                                  context=self.ctx,
+                                  input_token=server_tok,
+                                  services=self.services,
+                                  channel_bindings=self.channel_bindings,
+                                  mech_type=self.mech_type,
+                                  time=self.ttl)
+
+        (self.ctx, _, _, self.token, self.last_ttl, _) = resp
         return self.token
-    
+
     def encrypt(self, msg):
         """
         Encrypts a message
@@ -181,7 +198,8 @@ class BasicGSSClient(object):
         :param str msg: the message to be encrypted
         :rtype: bytes
         :returns: the encrypted form of the message
-        :except GSSClientError: if the requested security level could not be used
+        :except GSSClientError: if the requested security level
+                                could not be used
         """
 
         if self.security_type == gss.RequirementFlag.integrity:
@@ -189,11 +207,12 @@ class BasicGSSClient(object):
         elif self.security_type == gss.RequirementFlag.confidentiality:
             res, used = gss.wrap(self.ctx, msg, True, self.qop)
             if not used:
-                raise GSSClientError('User requested encryption, but it was not used!')
+                raise GSSClientError('User requested encryption, '
+                                     'but it was not used!')
             return res
         else:
             return msg
-    
+
     def decrypt(self, msg):
         """
         Decrypts a message
@@ -203,18 +222,23 @@ class BasicGSSClient(object):
         :param bytes msg: the message to be decrypted
         :rtype: str
         :returns: the decrypted message
-        :except GSSClientError: if encryption was requested but not used, or if the QoP failed to meet our standards
+        :except GSSClientError: if encryption was requested but not used,
+                or if the QoP failed to meet our standards
         """
 
         if self.security_type is not None and self.security_type != 0:
             res, used, qop = gss.unwrap(self.ctx, msg)
-            if not used and self.security_type == gss.RequirementFlag.confidentiality:
-                raise GSSClientError('User requested encryption, but the server sent an unencrypted message!')
+            isconf = self.security_type == gss.RequirementFlag.confidentiality
+            if (not used and isconf):
+                raise GSSClientError('User requested encryption, '
+                                     'but the server sent an unencrypted '
+                                     'message!')
 
             if self.qop is None:
                 self.qop = qop
             elif qop < self.qop:
-                raise GSSClientError('Server used a lower quality of protection than we expected!')
+                raise GSSClientError('Server used a lower quality of '
+                                     'protection than we expected!')
 
             return res
         else:
@@ -224,16 +248,18 @@ class BasicGSSClient(object):
         if self.ctx is not None:
             gss.deleteSecContext(self.ctx)
 
+
 class SASLGSSClientError(GSSClientError):
     """
     SASL GSS Client Error
 
     This Exception represents an error which occured
     when executing the SASL GSS Client helper code (as opposed to
-    :class:`gssapi.base.types.GSSError`, which are errors which occured directly
-    in the GSSAPI C code).
+    :class:`gssapi.base.types.GSSError`, which are errors which
+    occured directly in the GSSAPI C code).
     """
     pass
+
 
 class BasicSASLGSSClient(BasicGSSClient):
     """
@@ -243,42 +269,49 @@ class BasicSASLGSSClient(BasicGSSClient):
     the SASL GSSAPI mechanism using PyGSSAPI.
 
     All parameters besides username are used as in :class:`BasicGSSClient`.
-    All relevant attributes are set according to the SASL GSSAPI RFC 
+    All relevant attributes are set according to the SASL GSSAPI RFC
     (http://tools.ietf.org/html/rfc4752).
 
     :param str username: the user principal with which to authenticate
 
     .. attribute:: user_principal
-       
+
        The username to use in the authentication process
 
        .. warning::
-          
-          Unlike :attr:`service_principal`, this is just a string, not a :class:`gssapi.type_wrappers.GSSName`
+
+          Unlike :attr:`service_principal`, this is just a string,
+          not a :class:`gssapi.type_wrappers.GSSName`
     """
 
-    def __init__(self, username, service_principal, max_msg_size=None, *args, **kwargs):
+    def __init__(self, username, service_principal,
+                 max_msg_size=None, *args, **kwargs):
+
         self.user_principal = username
         self.max_msg_size = max_msg_size
-        super(BasicSASLGSSClient, self).__init__(service_principal, *args, **kwargs)
+        super(BasicSASLGSSClient, self).__init__(service_principal,
+                                                 *args, **kwargs)
 
         self.channel_bindings = None
         self.resolveMechType(gss.MechType.kerberos)
-        
+
         if (self.services is None):
             self.services = []
 
         if (self.security_type == gss.RequirementFlag.confidentiality):
             self.services.append(self.security_type)
-        
+
         self.services.append(gss.RequirementFlag.integrity)
 
         if (self.security_type != 0):
-            self.services.extend([gss.RequirementFlag.mutual_authentication,
-                                  gss.RequirementFlag.out_of_sequence_detection])
+            base_flags = [gss.RequirementFlag.mutual_authentication,
+                          gss.RequirementFlag.out_of_sequence_detection]
+            self.services.extend(base_flags)
 
-        self.INV_SEC_LAYER_MASKS = {v:k for k, v in self.SEC_LAYER_MASKS.items()}
-    
+        self.INV_SEC_LAYER_MASKS = {v: k
+                                    for k, v
+                                    in self.SEC_LAYER_MASKS.items()}
+
     def step1(self):
         """
         Creates a default token
@@ -302,7 +335,7 @@ class BasicSASLGSSClient(BasicGSSClient):
         :rtype: bytes
         :returns: a token or empty string to be sent to the server
         """
-        return self.processServerToken(server_tok) 
+        return self.processServerToken(server_tok)
 
     SEC_LAYER_MASKS = {
         0: 1,
@@ -321,34 +354,44 @@ class BasicSASLGSSClient(BasicGSSClient):
 
         :param bytes tok: the wrapped message sent from the server
         :rtype: bytes
-        :returns: a wrapped message to be sent to the server declaring our security level and max message size
+        :returns: a wrapped message to be sent to the server declaring
+                  our security level and max message size
         """
-        unwrapped_tok = gss.unwrap(self.ctx, msg)[0] # we don't care out security for this
+
+        # we don't care out security for this,
+        # so we don't use self.unwrap
+        unwrapped_tok = gss.unwrap(self.ctx, tok)[0]
         sec_layers_supported_raw = ord(unwrapped_tok[0])
         max_server_msg_size_raw = '\x00' + unwrapped_tok[1:4]
         max_server_msg_size = struct.unpack('!L', max_server_msg_size_raw)[0]
 
-        if self.max_msg_size is None or self.max_msg_size > max_server_msg_size:
+        if (self.max_msg_size is None
+                or self.max_msg_size > max_server_msg_size):
+
             self.max_msg_size = max_server_msg_size
-            
+
         sec_layers_supported = []
         for name, mask in self.SEC_LAYER_MASKS.items():
             if sec_layers_supported_raw & mask > 0:
                 sec_layers_supported.append(name)
 
         sec_layer_choice = 0
-        if self.security_type is None: # None means any
+        if self.security_type == 'any':
             for mask in self.SEC_LAYER_MASKS.values():
                 if mask & sec_layers_supported_raw > sec_layer_choice:
                     sec_layer_choice = mask
         elif self.security_type in sec_layers_supported:
             sec_layer_choice = self.SEC_LAYER_MASKS[self.security_type]
         else:
-            raise SASLGSSClientError('Server is unable to accomodate our security level!')
+            raise SASLGSSClientError('Server is unable to accomodate '
+                                     'our security level!')
 
         if self.security_layer is None:
-            self.security_layer = INV_SEC_LAYER_MASKS[sec_layer_choice]
-            
-        
-        resp = chr(sec_layer_choice) + struct.pack('!L', self.max_msg_size)[0:3] + self.user_principal
-        return gss.wrap(self.ctx, resp, False, self.qop)[0] # again, we don't care about our selected security type for this one
+            self.security_layer = self.INV_SEC_LAYER_MASKS[sec_layer_choice]
+
+        resp = (chr(sec_layer_choice) +
+                struct.pack('!L', self.max_msg_size)[0:3] +
+                self.user_principal)
+
+        # again, we don't care about our selected security type for this one
+        return gss.wrap(self.ctx, resp, False, self.qop)[0]

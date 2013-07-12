@@ -1,5 +1,5 @@
 import unittest
-import should_be.all
+import should_be.all  # noqa
 import gssapi.base as gb
 
 
@@ -32,6 +32,7 @@ class TestBaseUtilities(unittest.TestCase):
         cont.should_be_a(bool)
         cont.should_be_false()
 
+
 class TestBaseCore(unittest.TestCase):
     def setUp(self):
         self.target_name = gb.importName('vnc')
@@ -41,7 +42,8 @@ class TestBaseCore(unittest.TestCase):
         ctx_resp = gb.initSecContext(self.target_name)
         ctx_resp.shouldnt_be_none()
 
-        (ctx, out_mech_type, out_req_flags, out_token, out_ttl, cont_needed) = ctx_resp
+        (ctx, out_mech_type,
+         out_req_flags, out_token, out_ttl, cont_needed) = ctx_resp
 
         ctx.shouldnt_be_none()
         ctx.should_be_a('PyCapsule')
@@ -62,14 +64,15 @@ class TestBaseCore(unittest.TestCase):
     def test_accept_context(self):
         ctx_resp = gb.initSecContext(self.target_name)
         ctx_resp.shouldnt_be_none()
-        
+
         client_token = ctx_resp[3]
         client_token.shouldnt_be_empty()
 
         server_resp = gb.acceptSecContext(client_token)
         server_resp.shouldnt_be_none()
 
-        (ctx, name, mech_type, out_token, out_reqs_flags, out_ttl, delegated_cred, cont_needed) = server_resp
+        (ctx, name, mech_type, out_token,
+         out_req_flags, out_ttl, delegated_cred, cont_needed) = server_resp
 
         ctx.shouldnt_be_none()
         ctx.should_be_a('PyCapsule')
@@ -77,7 +80,7 @@ class TestBaseCore(unittest.TestCase):
         name.shouldnt_be_none()
         name.should_be_a('PyCapsule')
 
-        out_mech_type.should_be(gb.MechType.kerberos)
+        mech_type.should_be(gb.MechType.kerberos)
 
         out_token.shouldnt_be_empty()
 
@@ -93,7 +96,7 @@ class TestBaseCore(unittest.TestCase):
 
     # this needs the sever code, too
 #   def test_wrap_conf(self):
-#       # client 
+#       # client
 #       ctx_resp = gb.initSecContext(self.target_name)
 #       ctx_resp.shouldnt_be_none()
 
