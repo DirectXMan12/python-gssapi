@@ -47,6 +47,7 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None, service
     """
     Initializes a GSS Security Context
 
+    (Client)
     This method initializes a GSSAPI security context
     with the given parameters.
 
@@ -62,6 +63,28 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None, service
     :returns: a tuple containing the (potentially modified) context, the actual mechanism type used, the output token, the actual services provided, the actual TTL for this context, and whether or not a continue is needed (i.e. (context, MechType, [RequirementFlag], bytes, TTL, continue_needed))
     :except GSSError:
     """
+
+def acceptSecContext(input_token, acceptor_cred=None, ctx=None, channel_bindings=None):
+    """
+    Accepts a GSS Security Context
+
+    (Server)
+    This method accepts a GSSAPI security context
+    based on the given parameters, including the token
+    sent by the client returned from :func:`initSecContext`
+
+    :param str input_token: the token sent from the client
+    :param acceptor_cred: the handle for the credentials (returned from
+                          acquireCred) used to accept the context, or None
+                          to use the default acceptor principal
+    :param ctx: the current context, or None for a new context
+    :param channel_bindings: the requested channel bindings (currently on None is accepted)
+    :returns: a tuple containing the (potentially modified) context, the authenticated name of the context initiator,
+              the mechanism type used, the output token (to send to the client), the services flags in use,
+              the TTL for the context, and the delegated credential handle (or None if 
+              RequirementFlags.delegate_to_peer is not present in the services flags)
+              (i.e. (context, name, MechType, bytes, [RequirementFlag], int, delegated_cred, continue_needed))
+    :except GSSError:
 
 def getMechanismType(mech_type):
     """
@@ -108,8 +131,6 @@ def unwrap(context, message):
 # TODO(sross): implement inquireContext
 # TODO(sross): implement inquireCred (w/ support for by_mech)
 # TODO(sross): implement getDisplayName
-
-# TODO(sross): SERVER SIDE: implement acceptSecContext
 
 # TODO(sross): implement importCred and exportCred
 

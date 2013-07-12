@@ -209,10 +209,11 @@ parseFlags(PyObject *flags_list, int default_flags)
 #define CHECK_AND_INIT_FLAG(name) \
     if (cflags & GSS_C_ ## name ## _FLAG) \
     { \
-        PyObject *argList = Py_BuildValue("I", GSS_C_ ## name ## _FLAG); \
-        PyList_Append(flag_list, \
-                      PyObject_CallObject(RequirementFlag_class, argList)); \
+        PyObject *argList = Py_BuildValue("(I)", GSS_C_ ## name ## _FLAG); \
+        PyObject *resItem = PyObject_CallObject(RequirementFlag_class, argList); \
+        PyList_Append(flag_list, resItem); \
         Py_DECREF(argList); \
+        Py_DECREF(resItem); \
     }
 
 static PyObject *
@@ -241,7 +242,7 @@ createMechType(gss_OID mech_type)
     if (COMPARE_OIDS(mech_type, gss_mech_krb5))
     {
         // return MechType.kerberos
-        PyObject *argList = Py_BuildObject("I", 0);
+        PyObject *argList = Py_BuildValue("(I)", 0);
         PyObject *res = PyObject_CallObject(MechType_class, argList);
         Py_DECREF(argList);
         return res;
@@ -250,6 +251,95 @@ createMechType(gss_OID mech_type)
     {
         Py_RETURN_NONE;
     }
+}
+
+static PyObject *
+acceptSecContext(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    char *raw_input_token = NULL; // not null terminated, default: None/NULL
+    int raw_input_token_len;
+    PyObject *raw_acceptor_cred = Py_None; // capsule of default: None
+    PyObject *raw_ctx = Py_None; // capsule or default: None
+    PyObject *raw_channel_bindings = Py_None; // capsule or default: None
+    
+    static char *kwlist[] = {"input_token", "acceptor_cred", "ctx", "channel_bindings"};
+    
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "s#|OOO", kwlist, &raw_input_token, &raw_input_token_len, &raw_acceptor_cred, &raw_ctx, &raw_channel_bindings))
+        return NULL;
+
+    // NOTE: a server SHOULD use a credential obtained by calling acquireCred or
+    //       addCred for the GSS_C_NO_NAME desired_name and OID of kerberos for the
+    //       mech type, but may use either GSS_C_NO_CREDENTIAL or aqquire/add cred for
+    //       the server's principal name and the kerberos mechanism
+    //
+    //       We use the easiest way for the default for now :-)
+    gss_cred_id_t acceptor_cred = CAPSULE_OR_DEFAULT(gss_cred_id_t, raw_acceptor_cred, GSS_C_NO_CREDENTIAL);
+    gss_ctx_id_t ctx = CAPSULE_OR_DEFAULT(gss_ctx_id_t, raw_ctx, GSS_C_NO_CONTEXT);
+    gss_channel_bindings_t input_chan_bindings =
+        CAPSULE_OR_DEFAULT_DEREF(gss_channel_bindings_t, raw_channel_bindings, GSS_C_NO_CHANNEL_BINDINGS);
+    gss_buffer_desc input_token = GSS_C_EMPTY_BUFFER;
+
+    if (raw_input_token && *raw_input_token)
+    {
+        input_token.length = raw_input_token_len;
+        input_token.value = raw_input_token;
+    }
+
+    gss_name_t src_name;
+    gss_OID mech_type; // read-only (don't free)
+    gss_buffer_desc output_token = GSS_C_EMPTY_BUFFER;
+    OM_uint32 ret_flags;
+    OM_uint32 output_ttl;
+    gss_cred_id_t delegated_cred;
+
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+
+    Py_BEGIN_ALLOW_THREADS
+        maj_stat = gss_accept_sec_context(&min_stat, &ctx, acceptor_cred, &input_token, input_chan_bindings, &src_name,
+                                          &mech_type, &output_token, &ret_flags, &output_ttl, &delegated_cred);
+    Py_END_ALLOW_THREADS
+
+    if (maj_stat == GSS_S_COMPLETE || maj_stat == GSS_S_CONTINUE_NEEDED)
+    {
+        PyObject *cap_ctx = PyCapsule_New(ctx, NULL, NULL);
+        PyObject *cap_src_name = PyCapsule_New(src_name, NULL, NULL);
+        PyObject *cap_mech_type = createMechType(mech_type);
+        PyObject *reqs_out = createFlagsList(ret_flags);
+
+        PyObject *cap_delegated_cred;
+        if (delegated_cred == GSS_C_NO_CREDENTIAL)
+        {
+            cap_delegated_cred = Py_None;
+            Py_INCREF(Py_None);
+        }
+        else
+        {
+            cap_delegated_cred = PyCapsule_New(delegated_cred, NULL, NULL);
+        }
+
+        PyObject *continue_needed;
+        if (maj_stat == GSS_S_CONTINUE_NEEDED)
+        {
+            continue_needed = Py_True;
+            Py_INCREF(Py_True);
+        }
+        else
+        {
+            continue_needed = Py_False;
+            Py_INCREF(Py_False);
+        }
+
+        PyObject *res = Py_BuildValue("OOOs#OIOO", cap_ctx, cap_src_name, cap_mech_type, output_token.value, output_token.length, reqs_out, output_ttl, cap_delegated_cred, continue_needed);
+        gss_release_buffer(&min_stat, &output_token);
+        return res;
+    }
+    else
+    {
+        raise_gss_error(maj_stat, min_stat);
+        return NULL;
+    }
+
 }
 
 static PyObject *
@@ -437,6 +527,8 @@ static PyMethodDef GSSAPIMethods[] = {
      "Release a GSSAPI name"},
     {"initSecContext", initSecContext, METH_VARARGS | METH_KEYWORDS,
      "Initialize a GSS security context"},
+    {"acceptSecContext", acceptSecContext, METH_VARARGS | METH_KEYWORDS,
+     "Accept a GSS security context"},
     {"deleteSecContext", deleteSecContext, METH_VARARGS,
      "Release a GSS security context"},
     {"unwrap", unwrap, METH_VARARGS,
