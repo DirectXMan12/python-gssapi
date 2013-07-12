@@ -30,6 +30,18 @@ def releaseName(name_obj):
     """
 
 
+def releaseCred(cred_obj):
+    """
+    Releases GSSAPI credentials
+
+    This method releases GSSAPI credentials that were
+    allocated with acquireCred
+
+    :param cred_obj: the name credentials object to be released
+    :returns: None
+    """
+
+
 def deleteSecContext(context, output_needed=False):
     """
     Releases a security context

@@ -3,6 +3,10 @@ import should_be.all  # noqa
 import gssapi.base as gb
 
 
+TARGET_SERVICE_NAME = 'admin'
+INITIATOR_PRINICIPLE = 'admin'
+
+
 class TestBaseUtilities(unittest.TestCase):
     def test_import_name(self):
         imported_name = gb.importName('vnc')
@@ -32,10 +36,28 @@ class TestBaseUtilities(unittest.TestCase):
         cont.should_be_a(bool)
         cont.should_be_false()
 
+    def test_acquire_creds(self):
+        name = gb.importName('host/sross.localdomain', gb.NameType.principal)
+        cred_resp = gb.acquireCred(name)
+        cred_resp.shouldnt_be_none()
+
+        (creds, actual_mechs, ttl) = cred_resp
+
+        creds.shouldnt_be_none()
+        creds.should_be_a('PyCapsule')
+
+        actual_mechs.shouldnt_be_empty()
+        actual_mechs.should_include(gb.MechType.kerberos)
+
+        ttl.should_be_a(int)
+
+        gb.releaseName(name)
+        gb.releaseCred(creds)
+
 
 class TestBaseCore(unittest.TestCase):
     def setUp(self):
-        self.target_name = gb.importName('vnc')
+        self.target_name = gb.importName('host')
         self.target_name.shouldnt_be_none()
 
     def test_init_default_ctx(self):
@@ -62,13 +84,20 @@ class TestBaseCore(unittest.TestCase):
         gb.deleteSecContext(ctx)
 
     def test_accept_context(self):
+        # begin client prep
         ctx_resp = gb.initSecContext(self.target_name)
         ctx_resp.shouldnt_be_none()
 
         client_token = ctx_resp[3]
         client_token.shouldnt_be_empty()
+        # end client prep
 
-        server_resp = gb.acceptSecContext(client_token)
+        server_name = gb.importName('host/sross.localdomain',
+                                    gb.NameType.principal)
+        server_creds = gb.acquireCred(server_name, cred_usage=True)
+
+        server_resp = gb.acceptSecContext(client_token,
+                                          acceptor_cred=server_creds)
         server_resp.shouldnt_be_none()
 
         (ctx, name, mech_type, out_token,
@@ -93,6 +122,8 @@ class TestBaseCore(unittest.TestCase):
             delegated_cred.should_be_a('PyCapsule')
 
         cont_needed.should_be_a(bool)
+
+        self.assertTrue(True)
 
     # this needs the sever code, too
 #   def test_wrap_conf(self):
