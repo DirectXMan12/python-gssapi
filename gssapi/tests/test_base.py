@@ -1,5 +1,6 @@
 import unittest
 import should_be.all  # noqa
+import socket
 import gssapi.base as gb
 
 
@@ -55,12 +56,14 @@ class TestBaseUtilities(unittest.TestCase):
         gb.releaseCred(creds)
 
 
-class TestBaseCore(unittest.TestCase):
+class TestInitContext(unittest.TestCase):
     def setUp(self):
         self.target_name = gb.importName('host')
-        self.target_name.shouldnt_be_none()
 
-    def test_init_default_ctx(self):
+    def tearDown(self):
+        gb.releaseName(self.target_name)
+
+    def test_basic_init_default_ctx(self):
         ctx_resp = gb.initSecContext(self.target_name)
         ctx_resp.shouldnt_be_none()
 
@@ -83,28 +86,41 @@ class TestBaseCore(unittest.TestCase):
 
         gb.deleteSecContext(ctx)
 
-    def test_accept_context(self):
-        # begin client prep
+
+class TestAcceptContext(unittest.TestCase):
+
+    def setUp(self):
+        self.target_name = gb.importName('host')
         ctx_resp = gb.initSecContext(self.target_name)
-        ctx_resp.shouldnt_be_none()
 
-        client_token = ctx_resp[3]
-        client_token.shouldnt_be_empty()
-        # end client prep
+        self.client_token = ctx_resp[3]
+        self.client_ctx = ctx_resp[0]
 
-        server_name = gb.importName('host/sross.localdomain',
-                                    gb.NameType.principal)
-        server_creds = gb.acquireCred(server_name, cred_usage=True)
+        self.server_name = gb.importName('host/'+socket.getfqdn(),
+                                         gb.NameType.principal)
+        self.server_creds = gb.acquireCred(self.server_name)[0]
 
-        server_resp = gb.acceptSecContext(client_token,
-                                          acceptor_cred=server_creds)
+        self.server_ctx = None
+
+    def tearDown(self):
+        gb.releaseName(self.target_name)
+        gb.releaseName(self.server_name)
+        gb.releaseCred(self.server_creds)
+        gb.deleteSecContext(self.client_ctx)
+
+        if self.server_ctx is not None:
+            gb.deleteSecContext(self.server_ctx)
+
+    def test_basic_accept_context(self):
+        server_resp = gb.acceptSecContext(self.client_token,
+                                          acceptor_cred=self.server_creds)
         server_resp.shouldnt_be_none()
 
-        (ctx, name, mech_type, out_token,
+        (self.server_ctx, name, mech_type, out_token,
          out_req_flags, out_ttl, delegated_cred, cont_needed) = server_resp
 
-        ctx.shouldnt_be_none()
-        ctx.should_be_a('PyCapsule')
+        self.server_ctx.shouldnt_be_none()
+        self.server_ctx.should_be_a('PyCapsule')
 
         name.shouldnt_be_none()
         name.should_be_a('PyCapsule')
@@ -123,7 +139,57 @@ class TestBaseCore(unittest.TestCase):
 
         cont_needed.should_be_a(bool)
 
-        self.assertTrue(True)
+
+class TestWrapUnwrap(unittest.TestCase):
+    def setUp(self):
+        self.target_name = gb.importName('host')
+        ctx_resp = gb.initSecContext(self.target_name)
+
+        self.client_token1 = ctx_resp[3]
+        self.client_ctx = ctx_resp[0]
+
+        self.server_name = gb.importName('host/'+socket.getfqdn(),
+                                         gb.NameType.principal)
+        self.server_creds = gb.acquireCred(self.server_name)[0]
+        server_resp = gb.acceptSecContext(self.client_token1,
+                                          acceptor_cred=self.server_creds)
+        self.server_ctx = server_resp[0]
+        self.server_tok = server_resp[3]
+
+        client_resp2 = gb.initSecContext(self.target_name,
+                                         context=self.client_ctx,
+                                         input_token=self.server_tok)
+        self.client_token2 = client_resp2[3]
+        self.client_ctx = client_resp2[0]
+
+    def tearDown(self):
+        gb.releaseName(self.target_name)
+        gb.releaseName(self.server_name)
+        gb.releaseCred(self.server_creds)
+        gb.deleteSecContext(self.client_ctx)
+        gb.deleteSecContext(self.server_ctx)
+
+    def test_basic_wrap_unwrap(self):
+        (wrapped_message, conf) = gb.wrap(self.client_ctx, 'test message')
+
+        conf.should_be_a(bool)
+        conf.should_be_true()
+
+        wrapped_message.should_be_a(bytes)
+        wrapped_message.shouldnt_be_empty()
+        wrapped_message.should_be_longer_than('test message')
+
+        (unwrapped_message, conf, qop) = gb.unwrap(self.server_ctx,
+                                                   wrapped_message)
+        conf.should_be_a(bool)
+        conf.should_be_true()
+
+        qop.should_be_a(int)
+        qop.should_be_at_least(0)
+
+        unwrapped_message.should_be_a(str)
+        unwrapped_message.shouldnt_be_empty()
+        unwrapped_message.should_be('test message')
 
     # this needs the sever code, too
 #   def test_wrap_conf(self):

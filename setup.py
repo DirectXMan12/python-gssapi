@@ -40,13 +40,15 @@ setup(
     version='0.1.0',
     author='Solly Ross',
     author_email='sross@redhat.com',
-    packages=['gssapi', 'gssapi.base'],
+    packages=['gssapi', 'gssapi.base', 'gssapi.tests'],
     description='Python GSSAPI Wrapper',
     long_description=open('README.txt').read(),
     license='LICENSE.txt',
     ext_modules = [ext_module_b, ext_module_ct, ext_module_su],
     install_requires=[
         'flufl.enum >= 4.0'
+    ],
+    tests_require=[
+        'tox'
     ]
 )
-

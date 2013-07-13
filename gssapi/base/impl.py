@@ -30,6 +30,31 @@ def releaseName(name_obj):
     """
 
 
+def acquireCred(name, ttl=0, mechs=None, cred_usage=None):
+    """
+    Acquires GSSAPI Credentials
+
+    This method acquires credentials for the given
+    name (imported with :func:`importName`) for the desired
+    mechanims, with permissions to either initiate security
+    contexts, accept them, or both.
+
+    :param name: the name object for which to get credentials
+    :param int input_ttl: the requested TTL for these credentials
+    :param mechs: the mechanims types with which these credentials
+                  are to be used, or None for the default set
+    :type mechs: [:class:`gssapi.base.types.MechType`] or None
+    :param cred_usage: How these credentials are going to be used:
+                       To accept a context (True), to initiate a
+                       context (False), or both (None)
+    :type cred_usage: bool or None
+    :returns: a tuple containing the actual credentials, the mechanisms
+              for which these credentials are valid, and the actual TTL
+              (which may be 0)
+              (i.e. (creds, [MechType], ttl))
+    """
+
+
 def releaseCred(cred_obj):
     """
     Releases GSSAPI credentials
@@ -56,7 +81,6 @@ def deleteSecContext(context, output_needed=False):
     """
 
 
-# TODO(sross): implement acquireCred to use with cred
 # TODO(sross): add support for channel bindings
 def initSecContext(target_name, cred=None, context=None, mech_type=None,
                    services=[], time=0, channel_bindings=None,

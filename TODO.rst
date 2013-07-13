@@ -20,8 +20,5 @@ Bugs
   initializing a context with a server
   token
 
-- figure out why there's an 'E.E...'
-  at the beginning of the tests
-
-- figure out why running nosetests under sudo
-  doesn't actually show 'tests run'
+- figure out why after failing tests the credential
+  cache seems to be cleared
