@@ -190,18 +190,3 @@ class TestWrapUnwrap(unittest.TestCase):
         unwrapped_message.should_be_a(str)
         unwrapped_message.shouldnt_be_empty()
         unwrapped_message.should_be('test message')
-
-    # this needs the sever code, too
-#   def test_wrap_conf(self):
-#       # client
-#       ctx_resp = gb.initSecContext(self.target_name)
-#       ctx_resp.shouldnt_be_none()
-
-#       ctx = ctx_resp[0]
-#       ctx.shouldnt_be_none()
-
-#       wrapped_message = gb.wrap(ctx, 'test message')
-
-#       wrapped_message.should_be_a(str)
-#       wrapped_message.shouldnt_be_empty()
-#       wrapped_message.should_be_longer_than('test message')
