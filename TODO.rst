@@ -8,8 +8,6 @@ Features
 - implement the rest of the methods
   (see gssapi/base/impl.py)
 
-- write docs for acquireCred
-
 - figure out if we can run unit tests
   not under sudo
 
@@ -21,4 +19,5 @@ Bugs
   token
 
 - figure out why after failing tests the credential
-  cache seems to be cleared
+  cache seems to be cleared sometimes when running
+  tests which fail
