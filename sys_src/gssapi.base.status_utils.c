@@ -68,7 +68,5 @@ static PyMethodDef StatusUtilsMethods[] = {
 PyMODINIT_FUNC
 initstatus_utils(void)
 {
-    PyObject *module;
-
-    module = Py_InitModule("gssapi.base.status_utils", StatusUtilsMethods);
+    Py_InitModule("gssapi.base.status_utils", StatusUtilsMethods);
 }

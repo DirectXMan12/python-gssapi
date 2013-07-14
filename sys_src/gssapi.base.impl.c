@@ -571,7 +571,7 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
     }
 }
 
-#define INT_OR_DEFAULT(obj, def) VALUE_OR_DEFAULT(obj, def, PyInt_AsLong(obj))
+#define INT_OR_DEFAULT(obj, def) VALUE_OR_DEFAULT(obj, PyInt_AsLong(obj), def)
 
 static PyObject *
 wrap(PyObject *self, PyObject *args)
