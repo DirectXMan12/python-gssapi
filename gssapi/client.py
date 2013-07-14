@@ -28,9 +28,10 @@ class BasicGSSClient(object):
     This class implements all functionality needed to initialize a basic
     GSS connection and send/receive encrypted or signed messages.
 
-    :param str principal: the service principal to which to connect
-                          (automatically converted to a
-                          :class:`gssapi.type_wrappers.GSSName`)
+    :param str target: the service name to which to connect
+                       (automatically converted to a
+                        :class:`gssapi.type_wrappers.GSSName`),
+                       should be a host-based service name
     :param dbg: a method for printing debug messages (not currently used)
     :type dbg: function(title, message)
     :param security_type: the level of security to use
@@ -44,9 +45,9 @@ class BasicGSSClient(object):
        All methods in this class can potentially raise
        :class:`gssapi.base.types.GSSError`
 
-    .. attribute:: service_principal
+    .. attribute:: service_name
 
-       The service principal to which we are connecting
+       The service name to which we are connecting
        (as a :class:`gssapi.type_wrappers.GSSName`)
 
     .. attribute:: ctx
@@ -100,10 +101,10 @@ class BasicGSSClient(object):
           Function :func:`resolveMechType`
     """
 
-    def __init__(self, principal,
+    def __init__(self, target,
                  security_type='encrypted', max_msg_size=None):
 
-        self.service_principal = GSSName(principal)
+        self.service_name = GSSName(target)
         self.ctx = None
         self.token = None
         self.ttl = 0
@@ -151,7 +152,7 @@ class BasicGSSClient(object):
                   initializing the security context
         """
 
-        resp = gss.initSecContext(self.service_principal.capsule,
+        resp = gss.initSecContext(self.service_name.capsule,
                                   flags=self.flags,
                                   channel_bindings=self.channel_bindings,
                                   mech_type=self.mech_type,
@@ -172,7 +173,7 @@ class BasicGSSClient(object):
         :returns: the token resulting from updating the security context
         """
 
-        resp = gss.initSecContext(self.service_principal.capsule,
+        resp = gss.initSecContext(self.service_name.capsule,
                                   context=self.ctx,
                                   input_token=server_tok,
                                   flags=self.flags,
@@ -260,24 +261,24 @@ class BasicSASLGSSClient(BasicGSSClient):
     All relevant attributes are set according to the SASL GSSAPI RFC
     (http://tools.ietf.org/html/rfc4752).
 
-    :param str username: the user principal with which to authenticate
+    :param str username: the user name with which to authenticate
 
-    .. attribute:: user_principal
+    .. attribute:: user_name
 
        The username to use in the authentication process
 
        .. warning::
 
-          Unlike :attr:`service_principal`, this is just a string,
+          Unlike :attr:`service_name`, this is just a string,
           not a :class:`gssapi.type_wrappers.GSSName`
     """
 
-    def __init__(self, username, service_principal,
+    def __init__(self, username, target,
                  max_msg_size=None, *args, **kwargs):
 
-        self.user_principal = username
+        self.user_name = username
         self.max_msg_size = max_msg_size
-        super(BasicSASLGSSClient, self).__init__(service_principal,
+        super(BasicSASLGSSClient, self).__init__(target,
                                                  *args, **kwargs)
 
         self.channel_bindings = None
@@ -366,7 +367,7 @@ class BasicSASLGSSClient(BasicGSSClient):
 
         resp = (chr(sec_layer_choice) +
                 struct.pack('!L', self.max_msg_size)[0:3] +
-                self.user_principal)
+                self.user_name)
 
         # again, we don't care about our selected security type for this one
         return gss.wrap(self.ctx, resp, False, None)[0]

@@ -40,7 +40,7 @@ class TestBasicClient(unittest.TestCase):
         self.client.shouldnt_be_none()
         self.client.should_be_a(gc.BasicGSSClient)
 
-        self.client.service_principal.should_be_a('GSSName')
+        self.client.service_name.should_be_a('GSSName')
 
         self.client.security_type.should_be(gb.RequirementFlag.confidentiality)
 
