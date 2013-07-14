@@ -51,6 +51,7 @@ displayStatus(PyObject *self, PyObject *args, PyObject *keywds)
         PyObject *res = Py_BuildValue("s#IO", msg_buff.value, msg_buff.length,
                                       msg_ctx_out, call_again);
         gss_release_buffer(&min_stat, &msg_buff);
+        Py_DECREF(call_again);
         return res;
     }
     else {

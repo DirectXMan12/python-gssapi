@@ -70,7 +70,7 @@ importName(PyObject *self, PyObject *args)
 
     if (maj_stat == GSS_S_COMPLETE) {
         PyObject *out_name_obj = PyCapsule_New(output_name, NULL, NULL);
-        return Py_BuildValue("O", out_name_obj);
+        return out_name_obj;
     }
     else {
         raise_gss_error(maj_stat, min_stat);
@@ -229,6 +229,7 @@ acquireCred(PyObject *self, PyObject *args, PyObject *keywds)
         PyObject *list_mechs = createMechList(actual_mechs);
         PyObject *res = Py_BuildValue("OOI",
                                       cap_creds, list_mechs, actual_ttl);
+        Py_DECREF(cap_creds);
         Py_DECREF(list_mechs);
         return res;
     }
@@ -322,7 +323,8 @@ getMechanismType(PyObject *self, PyObject *args)
             break;
     }
 
-    return Py_BuildValue("O", PyCapsule_New(mech_type, NULL, NULL));
+    PyObject *cap_mech_type = PyCapsule_New(mech_type, NULL, NULL);
+    return cap_mech_type;
 }
 
 static int
@@ -468,6 +470,11 @@ acceptSecContext(PyObject *self, PyObject *args, PyObject *keywds)
                                       continue_needed);
         gss_release_buffer(&min_stat, &output_token);
         Py_DECREF(reqs_out);
+        Py_DECREF(cap_ctx);
+        Py_DECREF(cap_src_name);
+        Py_DECREF(cap_mech_type);
+        Py_DECREF(cap_delegated_cred);
+        Py_DECREF(continue_needed);
         return res;
     }
     else
@@ -563,6 +570,9 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
 
         gss_release_buffer(&min_stat, &output_token);
         Py_DECREF(reqs_out);
+        Py_DECREF(cap_ctx);
+        Py_DECREF(cap_mech_type);
+        Py_DECREF(continue_needed);
         return res;
     }
     else {
@@ -622,6 +632,7 @@ wrap(PyObject *self, PyObject *args)
                                       conf_state_out);
 
         gss_release_buffer(&min_stat, &output_message_buffer);
+        Py_DECREF(conf_state_out);
         return res;
     }
     else {
@@ -673,6 +684,7 @@ unwrap(PyObject *self, PyObject *args)
                                       output_message_buffer.length,
                                       conf_state_out, qop_state);
         gss_release_buffer(&min_stat, &output_message_buffer);
+        Py_DECREF(conf_state_out);
         return res;
     }
     else {
