@@ -4,13 +4,13 @@ import socket
 import gssapi.base as gb
 
 
-TARGET_SERVICE_NAME = 'admin'
+TARGET_SERVICE_NAME = 'host'
 INITIATOR_PRINICIPLE = 'admin'
 
 
 class TestBaseUtilities(unittest.TestCase):
     def test_import_name(self):
-        imported_name = gb.importName('vnc')
+        imported_name = gb.importName(TARGET_SERVICE_NAME)
 
         imported_name.shouldnt_be_none()
         imported_name.should_be_a('PyCapsule')
@@ -58,7 +58,7 @@ class TestBaseUtilities(unittest.TestCase):
 
 class TestInitContext(unittest.TestCase):
     def setUp(self):
-        self.target_name = gb.importName('host')
+        self.target_name = gb.importName(TARGET_SERVICE_NAME)
 
     def tearDown(self):
         gb.releaseName(self.target_name)
@@ -90,13 +90,15 @@ class TestInitContext(unittest.TestCase):
 class TestAcceptContext(unittest.TestCase):
 
     def setUp(self):
-        self.target_name = gb.importName('host')
+        self.target_name = gb.importName(TARGET_SERVICE_NAME)
         ctx_resp = gb.initSecContext(self.target_name)
 
         self.client_token = ctx_resp[3]
         self.client_ctx = ctx_resp[0]
 
-        self.server_name = gb.importName('host/'+socket.getfqdn(),
+        str_server_name = (TARGET_SERVICE_NAME + '/' +
+                           socket.getfqdn())
+        self.server_name = gb.importName(str_server_name,
                                          gb.NameType.principal)
         self.server_creds = gb.acquireCred(self.server_name)[0]
 
@@ -142,13 +144,14 @@ class TestAcceptContext(unittest.TestCase):
 
 class TestWrapUnwrap(unittest.TestCase):
     def setUp(self):
-        self.target_name = gb.importName('host')
+        self.target_name = gb.importName(TARGET_SERVICE_NAME)
         ctx_resp = gb.initSecContext(self.target_name)
 
         self.client_token1 = ctx_resp[3]
         self.client_ctx = ctx_resp[0]
-
-        self.server_name = gb.importName('host/'+socket.getfqdn(),
+        str_server_name = (TARGET_SERVICE_NAME + '/' +
+                           socket.getfqdn())
+        self.server_name = gb.importName(str_server_name,
                                          gb.NameType.principal)
         self.server_creds = gb.acquireCred(self.server_name)[0]
         server_resp = gb.acceptSecContext(self.client_token1,

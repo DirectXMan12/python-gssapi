@@ -203,7 +203,7 @@ class BasicGSSClient(object):
         """
 
         if self.security_type == gss.RequirementFlag.integrity:
-            gss.wrap(self.ctx, msg, False, self.qop)[0]
+            return gss.wrap(self.ctx, msg, False, self.qop)[0]
         elif self.security_type == gss.RequirementFlag.confidentiality:
             res, used = gss.wrap(self.ctx, msg, True, self.qop)
             if not used:
