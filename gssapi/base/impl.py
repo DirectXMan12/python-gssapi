@@ -83,7 +83,7 @@ def deleteSecContext(context, output_needed=False):
 
 # TODO(sross): add support for channel bindings
 def initSecContext(target_name, cred=None, context=None, mech_type=None,
-                   services=[], time=0, channel_bindings=None,
+                   flags=None, time=0, channel_bindings=None,
                    input_token=None):
     """
     Initializes a GSS Security Context
@@ -91,7 +91,7 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None,
     (Client)
     This method initializes a GSSAPI security context
     with the given parameters.  The default flags for
-    the services field are MUTUAL and SEQUENCE.
+    the flags field are MUTUAL and SEQUENCE.
 
     :param target_name: the name of the target
                         (commonly the server name, retrieved using importName)
@@ -102,8 +102,8 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None,
     :param mech_type: the mechanism type
                       (None for default, otherwise a capsule
                       from :func:`getMechanismType`)
-    :param services: the requested services
-    :type services: [:class:`RequirementFlag`]
+    :param flags: the requested flags
+    :type flags: [:class:`RequirementFlag`]
     :param int time: the requested TTL for this context
                      (0 uses the default TTL)
     :param channel_bindings: the requested input channel bindings
@@ -113,7 +113,7 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None,
               the (potentially modified) context,
               the actual mechanism type used,
               the output token,
-              the actual services provided,
+              the actual flags provided,
               the actual TTL for this context,
               and whether or not a continue is needed
               (i.e. (context, MechType, [RequirementFlag],
@@ -144,12 +144,12 @@ def acceptSecContext(input_token, acceptor_cred=None,
               the authenticated name of the context initiator,
               the mechanism type used,
               the output token (to send to the client),
-              the services flags in use,
+              the flags in use,
               the TTL for the context,
               and the delegated credential handle
                 (or None if
                  RequirementFlags.delegate_to_peer is not present
-                 in the services flags)
+                 in the flags)
               (i.e. (context, name, MechType, bytes,
                      [RequirementFlag], int, delegated_cred, continue_needed))
     :except GSSError:

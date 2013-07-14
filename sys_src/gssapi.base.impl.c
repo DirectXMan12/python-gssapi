@@ -492,17 +492,17 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
     PyObject* raw_cred = Py_None; /* capsule or default: None */
     PyObject* raw_ctx = Py_None; /* capsule or default: None */
     PyObject* raw_mech_type = Py_None; /* int or default: None */
-    PyObject* services_list = Py_None; /* list of ints, default: [MUTUAL, SEQUENCE] */
+    PyObject* flags_list = Py_None; /* list of ints, default: [MUTUAL, SEQUENCE] */
     OM_uint32 ttl = 0; /* default: 0 */
     PyObject* raw_channel_bindings = Py_None; /* capsule or default: None */
     char *raw_input_token = NULL; /* not null terminated, default: None/NuLL */
     int raw_input_token_len;
 
-    static char *kwlist[] = {"target_name", "cred", "context", "mech_type", "services", "time", "channel_bindings", "input_token", NULL};
+    static char *kwlist[] = {"target_name", "cred", "context", "mech_type", "flags", "time", "channel_bindings", "input_token", NULL};
 
     if(!PyArg_ParseTupleAndKeywords(args, keywds, "O|OOOOIOs#", kwlist,
                                     &raw_target_name, &raw_cred, &raw_ctx,
-                                    &raw_mech_type, &services_list, &ttl,
+                                    &raw_mech_type, &flags_list, &ttl,
                                     &raw_channel_bindings, &raw_input_token,
                                     &raw_input_token_len))
         return NULL;
@@ -518,7 +518,7 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
     gss_OID mech_type = CAPSULE_OR_DEFAULT(gss_OID, raw_mech_type,
                                            GSS_C_NO_OID);
 
-    OM_uint32 req_flags = parseFlags(services_list,
+    OM_uint32 req_flags = parseFlags(flags_list,
                                     (GSS_C_MUTUAL_FLAG | GSS_C_SEQUENCE_FLAG));
 
     gss_channel_bindings_t bdng = CAP_OR_DFLT_DR(gss_channel_bindings_t,

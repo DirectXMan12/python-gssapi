@@ -74,7 +74,7 @@ class BasicGSSClient(object):
        The actual amount of time for which the current
        GSS context object will be valid
 
-    .. attribute:: services
+    .. attribute:: flags
 
        Type: [:class:`gssapi.base.types.RequirementFlag`]
 
@@ -110,16 +110,16 @@ class BasicGSSClient(object):
         self.last_ttl = None
         self.channel_bindings = None
         self.mech_type = None
-        self.services = [gss.RequirementFlag.mutual_authentication,
-                         gss.RequirementFlag.out_of_sequence_detection]
+        self.flags = [gss.RequirementFlag.mutual_authentication,
+                      gss.RequirementFlag.out_of_sequence_detection]
 
         if security_type[0:5] == 'integ':
             self.security_type = gss.RequirementFlag.integrity
-            self.services.append(self.security_type)
+            self.flags.append(self.security_type)
         elif security_type[0:4] == 'conf' or security_type[0:3] == 'enc':
             self.security_type = gss.RequirementFlag.confidentiality
-            self.services.append(self.security_type)
-            self.services.append(gss.RequirementFlag.integrity)
+            self.flags.append(self.security_type)
+            self.flags.append(gss.RequirementFlag.integrity)
         elif security_type == 'any':
             self.security_type = None
         else:
@@ -152,7 +152,7 @@ class BasicGSSClient(object):
         """
 
         resp = gss.initSecContext(self.service_principal.capsule,
-                                  services=self.services,
+                                  flags=self.flags,
                                   channel_bindings=self.channel_bindings,
                                   mech_type=self.mech_type,
                                   time=self.ttl)
@@ -175,7 +175,7 @@ class BasicGSSClient(object):
         resp = gss.initSecContext(self.service_principal.capsule,
                                   context=self.ctx,
                                   input_token=server_tok,
-                                  services=self.services,
+                                  flags=self.flags,
                                   channel_bindings=self.channel_bindings,
                                   mech_type=self.mech_type,
                                   time=self.ttl)
@@ -283,18 +283,18 @@ class BasicSASLGSSClient(BasicGSSClient):
         self.channel_bindings = None
         self.resolveMechType(gss.MechType.kerberos)
 
-        if (self.services is None):
-            self.services = []
+        if (self.flags is None):
+            self.flags = []
 
         if (self.security_type == gss.RequirementFlag.confidentiality):
-            self.services.append(self.security_type)
+            self.flags.append(self.security_type)
 
-        self.services.append(gss.RequirementFlag.integrity)
+        self.flags.append(gss.RequirementFlag.integrity)
 
         if (self.security_type != 0):
             base_flags = [gss.RequirementFlag.mutual_authentication,
                           gss.RequirementFlag.out_of_sequence_detection]
-            self.services.extend(base_flags)
+            self.flags.extend(base_flags)
 
         self.INV_SEC_LAYER_MASKS = {v: k
                                     for k, v
