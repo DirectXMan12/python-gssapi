@@ -90,7 +90,8 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None,
 
     (Client)
     This method initializes a GSSAPI security context
-    with the given parameters.
+    with the given parameters.  The default flags for
+    the services field are MUTUAL and SEQUENCE.
 
     :param target_name: the name of the target
                         (commonly the server name, retrieved using importName)
