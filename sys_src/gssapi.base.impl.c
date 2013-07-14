@@ -18,7 +18,7 @@ static void raise_gss_error(OM_uint32 maj, OM_uint32 min)
 static PyObject *
 importName(PyObject *self, PyObject *args)
 {
-    const char *name;
+    char *name;
     int name_len;
     int raw_name_type = 0; /* default: hostbased_service */
 
