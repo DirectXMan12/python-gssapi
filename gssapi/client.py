@@ -283,19 +283,6 @@ class BasicSASLGSSClient(BasicGSSClient):
         self.channel_bindings = None
         self.resolveMechType(gss.MechType.kerberos)
 
-        if (self.services is None):
-            self.services = []
-
-        if (self.security_type == gss.RequirementFlag.confidentiality):
-            self.services.append(self.security_type)
-
-        self.services.append(gss.RequirementFlag.integrity)
-
-        if (self.security_type != 0):
-            base_flags = [gss.RequirementFlag.mutual_authentication,
-                          gss.RequirementFlag.out_of_sequence_detection]
-            self.services.extend(base_flags)
-
         self.INV_SEC_LAYER_MASKS = {v: k
                                     for k, v
                                     in self.SEC_LAYER_MASKS.items()}
