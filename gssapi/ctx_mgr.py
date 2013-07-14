@@ -41,17 +41,17 @@ class GSSSocketClient(object):
 
     def _init_gss_conn(self):
         client_tok = self.client.createDefaultToken()
-        self.sender(client_tok, self.socket.send)
+        self.sender(client_tok, self.socket.sendall)
         server_tok = self.recver(self.socket.recv)
         self.client.processServerToken(server_tok)
 
     def send(self, msg):
-       enc_msg = self.client.wrap(msg)
-       return self.sender(enc_msg, self.socket.send)
+       enc_msg = self.client.encrypt(msg)
+       return self.sender(enc_msg, self.socket.sendall)
 
     def recv(self):
         enc_msg = self.recver(self.socket.recv)
-        return self.client.unwrap(enc_msg)
+        return self.client.decrypt(enc_msg)
 
     def __del__(self):
         if self.was_our_socket:
@@ -68,3 +68,7 @@ class GSSSocketClient(object):
 
 def open(*args, **kwargs):
     return GSSSocketClient(*args, **kwargs)
+
+# IDEA: make a context manager that automatically encrypts and
+#       decrypts socket communications (i.e. when entering scope,
+#       it monkey-patches socket.send, and upon exiting unpatches it
