@@ -74,14 +74,6 @@ class BasicGSSClient(object):
        The actual amount of time for which the current
        GSS context object will be valid
 
-    .. attribute:: qop
-
-       Type: int > 0 or None
-
-       The current Quality of Protection being used in the
-       encryption/decryption process (set this to the desired QoP, or
-       None for default, to attempt to use that QoP)
-
     .. attribute:: services
 
        Type: [:class:`gssapi.base.types.RequirementFlag`]
@@ -196,7 +188,7 @@ class BasicGSSClient(object):
         Encrypts a message
 
         This method encrypts a message according to the current
-        QoP (:attr:`qop`) and security level
+        security level
 
         :param str msg: the message to be encrypted
         :rtype: bytes
@@ -230,7 +222,7 @@ class BasicGSSClient(object):
         """
 
         if self.security_type is not None and self.security_type != 0:
-            res, used, qop = gss.unwrap(self.ctx, msg)
+            res, used, _ = gss.unwrap(self.ctx, msg)
             isconf = self.security_type == gss.RequirementFlag.confidentiality
             if (not used and isconf):
                 raise GSSClientError('User requested encryption, '
