@@ -1,6 +1,8 @@
+*.egg-info
 *~
 *.pyc
 build
 *.swp
 *.swo
-
+*.so
+.tox

@@ -13,9 +13,13 @@ Requirements
 * A working implementation of GSSAPI (such as from MIT Kerberos)
   which includes header files
 
+* a C compiler (such as GCC)
+
 * the `flufl.enum` Python package
 
-* a C compiler (such as GCC)
+* the `nose` package (for tests)
+
+* the `shouldbe` package (for tests)
 
 Installation
 ============
@@ -35,6 +39,29 @@ From the Git Repo
     $ git clone https://github.com/DirectXMan12/python-gssapi.git
     $ python setup.py build
     $ python setup.py install
+
+Tests
+=====
+
+I have written some tests of PyGSSAPI; they live in the `gssapi.tests`
+directory.  Currently the basic `gssapi.base` commands have been tested.
+Before running the tests, a valid 'host/[FQDN]' (e.g. 'host/sross.localdomain')
+must have been `kinit`-ed.  If you run `tox`, it will do this for you (you will
+likely need to run `tox` with `sudo`).  Additionally, a normal kerberos user
+should also have been `kinit`-ed
+
+.. code-block:: bash
+
+   $ sudo kinit some_user
+   $ sudo tox
+
+or 
+
+.. code-block:: bash
+   
+   $ sudo kinit host/some.domain -k
+   $ sudo kinit some_user
+   $ sudo nosetests
 
 Structure
 =========

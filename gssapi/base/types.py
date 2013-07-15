@@ -1,7 +1,7 @@
-from flufl.enum import Enum
 from flufl.enum import IntEnum
-from gssapi.base.ctypes import *
+from gssapi.base.ctypes import *  # noqa
 from gssapi.base.status_utils import displayStatus
+
 
 class NameType(IntEnum):
     """
@@ -16,13 +16,13 @@ class NameType(IntEnum):
     to change at any point.
     """
 
-#   hostbased_service = GSS_C_NT_HOSTBASED_SERVICE 
-#   principal = GSS_C_NT_PRINCIPAL_NAME
-#   user = GSS_C_NT_USER_NAME
-#   anonymous = GSS_C_NT_ANONYMOUS
-#   machine_uid = GSS_C_NT_MACHINE_UID_NAME
-#   string_uid = GSS_C_NT_STRING_UID_NAME
-#   export = GSS_C_NT_EXPORT_NAME
+    #  hostbased_service = GSS_C_NT_HOSTBASED_SERVICE
+    #  principal = GSS_C_NT_PRINCIPAL_NAME
+    #  user = GSS_C_NT_USER_NAME
+    #  anonymous = GSS_C_NT_ANONYMOUS
+    #  machine_uid = GSS_C_NT_MACHINE_UID_NAME
+    #  string_uid = GSS_C_NT_STRING_UID_NAME
+    #  export = GSS_C_NT_EXPORT_NAME
     hostbased_service = 0
     principal = 1
     user = 2
@@ -33,6 +33,7 @@ class NameType(IntEnum):
     # NOTE: there are more kerberos specific names, but I think
     #       those are just hold-overs from before the GSS_C_NT_
     #       names were there (check gss_krb5_nt_)
+
 
 class RequirementFlag(IntEnum):
     """
@@ -54,13 +55,14 @@ class RequirementFlag(IntEnum):
     anonymous = GSS_C_ANON_FLAG
     transferable = GSS_C_TRANS_FLAG
 
+
 class MechType(IntEnum):
     """
     GSSAPI Mechanism Types
 
     This IntEnum represents explicit GSSAPI mechanism types
     (to be used with initSecContext).
-    
+
     Note that the integers behind these enum members do not
     correspond to any numbers in the GSSAPI C bindings, and are
     subject oto change at any point.
@@ -68,7 +70,8 @@ class MechType(IntEnum):
 
     kerberos = 0
 
-# TODO(ross): make an error for each error return code
+
+# TODO(ross): make an error for each error return code?
 class GSSError(Exception):
     """
     GSSAPI Error
@@ -79,12 +82,13 @@ class GSSError(Exception):
     generate human-readable string messages from the error
     codes
     """
-    
+
     def __init__(self, maj_code, min_code):
         """
         Creates a new GSSError
 
-        This method creates a new GSSError, retrieves the releated human-readable
+        This method creates a new GSSError,
+        retrieves the releated human-readable
         string messages, and uses the results to construct an
         exception message
 
@@ -94,7 +98,7 @@ class GSSError(Exception):
 
         self.maj_code = maj_code
         self.min_code = min_code
-        
+
         super(GSSError, self).__init__(self.gen_message())
 
     def get_all_statuses(self, code, is_maj):
@@ -105,18 +109,20 @@ class GSSError(Exception):
         available for the given status code.
 
         :param int code: the status code in question
-        :param bool is_maj: whether this is a major status code (True) or minor status code (False)
+        :param bool is_maj: whether this is a major status code (True)
+                            or minor status code (False)
         :rtype: [str]
         :returns: a list of string messages for this error code
         """
-        
+
         res = []
         last_str, last_ctx, cont = displayStatus(code, is_maj)
         res.append(last_str)
         while cont:
-            last_str, last_ctx, cont = displayStatus(code, is_maj, message_context=last_ctx)
+            last_str, last_ctx, cont = displayStatus(code, is_maj,
+                                                     message_context=last_ctx)
             res.append(last_str)
-        
+
         return res
 
     def gen_message(self):
@@ -133,9 +139,8 @@ class GSSError(Exception):
         maj_statuses = self.get_all_statuses(self.maj_code, True)
         min_statuses = self.get_all_statuses(self.min_code, False)
 
-        return "Major ({maj_stat}): {maj_str}, Minor ({min_stat}): {min_str}".format(
-            maj_stat = self.maj_code,
-            maj_str = maj_statuses,
-            min_stat = self.min_code,
-            min_str = min_statuses
-        )
+        msg = "Major ({maj_stat}): {maj_str}, Minor ({min_stat}): {min_str}"
+        return msg.format(maj_stat=self.maj_code,
+                          maj_str=maj_statuses,
+                          min_stat=self.min_code,
+                          min_str=min_statuses)

@@ -1,2 +1,2 @@
-from gssapi.base.types import *
-from gssapi.base.impl import *
+from gssapi.base.types import *  # noqa
+from gssapi.base.impl import *  # noqa

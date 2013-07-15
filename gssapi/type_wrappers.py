@@ -1,5 +1,6 @@
 import gssapi.base as gss
 
+
 class GSSName(object):
     """
     A GSS Name Object
@@ -33,4 +34,3 @@ class GSSName(object):
 
     def __repr__(self):
         return "<gss name ({0}): {1}>".format(self.name_type, self.name)
-
