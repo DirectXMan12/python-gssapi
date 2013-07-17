@@ -4,14 +4,16 @@
 static PyObject *
 displayStatus(PyObject *self, PyObject *args, PyObject *keywds)
 {
-    OM_uint32 err_code; 
-    int is_major_code; //boolean
-    PyObject *raw_mech_type = Py_None; // capsule or default: None
-    OM_uint32 message_context = 0; // default: 0
+    OM_uint32 err_code;
+    int is_major_code; /* boolean */
+    PyObject *raw_mech_type = Py_None; /* capsule or default: None */
+    OM_uint32 message_context = 0; /* default: 0 */
 
     static char *kwlist[] = {"err_code", "is_major_code", "mech_type", "message_context", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ii|OI", kwlist, &err_code, &is_major_code, &raw_mech_type, &message_context))
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "Ii|OI", kwlist,
+                                     &err_code, &is_major_code,
+                                     &raw_mech_type, &message_context))
         return NULL;
 
     int status_type;
@@ -32,28 +34,26 @@ displayStatus(PyObject *self, PyObject *args, PyObject *keywds)
     OM_uint32 msg_ctx_out = message_context;
     gss_buffer_desc msg_buff;
 
-    maj_stat = gss_display_status(&min_stat, err_code, status_type, mech_type, &msg_ctx_out, &msg_buff);
+    maj_stat = gss_display_status(&min_stat, err_code, status_type, mech_type,
+                                  &msg_ctx_out, &msg_buff);
 
-    
-    if (maj_stat == GSS_S_COMPLETE)
-    {
+
+    if (maj_stat == GSS_S_COMPLETE) {
         PyObject *call_again;
-        if (msg_ctx_out)
-        {
+        if (msg_ctx_out) {
             call_again = Py_True;
             Py_INCREF(Py_True);
         }
-        else
-        {
+        else {
             call_again = Py_False;
             Py_INCREF(Py_False);
         }
-        PyObject *res = Py_BuildValue("s#IO", msg_buff.value, msg_buff.length, msg_ctx_out, call_again);
+        PyObject *res = Py_BuildValue("s#IO", msg_buff.value, msg_buff.length,
+                                      msg_ctx_out, call_again);
         gss_release_buffer(&min_stat, &msg_buff);
         return res;
     }
-    else
-    {
+    else {
         gss_release_buffer(&min_stat, &msg_buff);
         Py_RETURN_NONE;
     }
@@ -62,7 +62,7 @@ displayStatus(PyObject *self, PyObject *args, PyObject *keywds)
 static PyMethodDef StatusUtilsMethods[] = {
     {"displayStatus", displayStatus, METH_VARARGS | METH_KEYWORDS,
      "Turn GSSAPI status codes into human-readable strings"},
-    {NULL, NULL, 0, NULL} // sentinel value
+    {NULL, NULL, 0, NULL} /* sentinel value */
 };
 
 PyMODINIT_FUNC
