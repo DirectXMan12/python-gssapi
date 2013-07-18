@@ -74,14 +74,6 @@ class BasicGSSClient(object):
        The actual amount of time for which the current
        GSS context object will be valid
 
-    .. attribute:: qop
-
-       Type: int > 0 or None
-
-       The current Quality of Protection being used in the
-       encryption/decryption process (set this to the desired QoP, or
-       None for default, to attempt to use that QoP)
-
     .. attribute:: services
 
        Type: [:class:`gssapi.base.types.RequirementFlag`]
@@ -116,7 +108,6 @@ class BasicGSSClient(object):
         self.token = None
         self.ttl = 0
         self.last_ttl = None
-        self.qop = None
         self.channel_bindings = None
         self.mech_type = None
         self.services = [gss.RequirementFlag.mutual_authentication,
@@ -197,7 +188,7 @@ class BasicGSSClient(object):
         Encrypts a message
 
         This method encrypts a message according to the current
-        QoP (:attr:`qop`) and security level
+        security level
 
         :param str msg: the message to be encrypted
         :rtype: bytes
@@ -207,9 +198,9 @@ class BasicGSSClient(object):
         """
 
         if self.security_type == gss.RequirementFlag.integrity:
-            return gss.wrap(self.ctx, msg, False, self.qop)[0]
+            return gss.wrap(self.ctx, msg, False, None)[0]
         elif self.security_type == gss.RequirementFlag.confidentiality:
-            res, used = gss.wrap(self.ctx, msg, True, self.qop)
+            res, used = gss.wrap(self.ctx, msg, True, None)
             if not used:
                 raise GSSClientError('User requested encryption, '
                                      'but it was not used!')
@@ -231,19 +222,12 @@ class BasicGSSClient(object):
         """
 
         if self.security_type is not None and self.security_type != 0:
-            res, used, qop = gss.unwrap(self.ctx, msg)
+            res, used, _ = gss.unwrap(self.ctx, msg)
             isconf = self.security_type == gss.RequirementFlag.confidentiality
             if (not used and isconf):
                 raise GSSClientError('User requested encryption, '
                                      'but the server sent an unencrypted '
                                      'message!')
-
-            if self.qop is None:
-                self.qop = qop
-            elif qop < self.qop:
-                raise GSSClientError('Server used a lower quality of '
-                                     'protection than we expected!')
-
             return res
         else:
             return msg
@@ -398,4 +382,4 @@ class BasicSASLGSSClient(BasicGSSClient):
                 self.user_principal)
 
         # again, we don't care about our selected security type for this one
-        return gss.wrap(self.ctx, resp, False, self.qop)[0]
+        return gss.wrap(self.ctx, resp, False, None)[0]
