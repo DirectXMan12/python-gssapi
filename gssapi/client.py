@@ -119,12 +119,16 @@ class BasicGSSClient(object):
         self.qop = None
         self.channel_bindings = None
         self.mech_type = None
-        self.services = None
+        self.services = [gss.RequirementFlag.mutual_authentication,
+                         gss.RequirementFlag.out_of_sequence_detection]
 
         if security_type[0:5] == 'integ':
             self.security_type = gss.RequirementFlag.integrity
+            self.services.append(self.security_type)
         elif security_type[0:4] == 'conf' or security_type[0:3] == 'enc':
             self.security_type = gss.RequirementFlag.confidentiality
+            self.services.append(self.security_type)
+            self.services.append(gss.RequirementFlag.integrity)
         elif security_type == 'any':
             self.security_type = None
         else:
