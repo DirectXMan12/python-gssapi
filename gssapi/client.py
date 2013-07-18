@@ -116,7 +116,6 @@ class BasicGSSClient(object):
         self.token = None
         self.ttl = 0
         self.last_ttl = None
-        self.qop = None
         self.channel_bindings = None
         self.mech_type = None
         self.services = [gss.RequirementFlag.mutual_authentication,
@@ -207,9 +206,9 @@ class BasicGSSClient(object):
         """
 
         if self.security_type == gss.RequirementFlag.integrity:
-            return gss.wrap(self.ctx, msg, False, self.qop)[0]
+            return gss.wrap(self.ctx, msg, False, None)[0]
         elif self.security_type == gss.RequirementFlag.confidentiality:
-            res, used = gss.wrap(self.ctx, msg, True, self.qop)
+            res, used = gss.wrap(self.ctx, msg, True, None)
             if not used:
                 raise GSSClientError('User requested encryption, '
                                      'but it was not used!')
@@ -237,13 +236,6 @@ class BasicGSSClient(object):
                 raise GSSClientError('User requested encryption, '
                                      'but the server sent an unencrypted '
                                      'message!')
-
-            if self.qop is None:
-                self.qop = qop
-            elif qop < self.qop:
-                raise GSSClientError('Server used a lower quality of '
-                                     'protection than we expected!')
-
             return res
         else:
             return msg
@@ -398,4 +390,4 @@ class BasicSASLGSSClient(BasicGSSClient):
                 self.user_principal)
 
         # again, we don't care about our selected security type for this one
-        return gss.wrap(self.ctx, resp, False, self.qop)[0]
+        return gss.wrap(self.ctx, resp, False, None)[0]
