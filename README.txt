@@ -150,9 +150,9 @@ Examples
     
     client = gss.BasicGSSClient('vnc@some.host', security_type='encrypted')
 
-    init_token = client.createDefaultToken()
+    init_token = client.setupBaseSecurityContext()
     # send to server, get response back...
-    next_token = client.processServerToken(server_resp)
+    next_token = client.updateSecurityContext(server_resp)
     # encrypt a message
     msg_enc = client.encrypt('WARNING: this is secret')
     # send the message, get response back...
