@@ -140,7 +140,7 @@ class BasicGSSClient(object):
 
         self.mech_type = gss.getMechanismType(mt)
 
-    def createDefaultToken(self):
+    def setupBaseSecurityContext(self):
         """
         Initializes a default token and security context
 
@@ -161,7 +161,7 @@ class BasicGSSClient(object):
         (self.ctx, _, _, self.token, self.last_ttl, _) = resp
         return self.token
 
-    def processServerToken(self, server_tok):
+    def updateSecurityContext(self, server_tok):
         """
         Processes a server token, and updates the security context
 
@@ -298,7 +298,7 @@ class BasicSASLGSSClient(BasicGSSClient):
         :rtype: bytes
         :returns: a default token to send to the server
         """
-        return self.createDefaultToken()
+        return self.setupBaseSecurityContext()
 
     def step2(self, server_tok):
         """
@@ -311,7 +311,7 @@ class BasicSASLGSSClient(BasicGSSClient):
         :rtype: bytes
         :returns: a token or empty string to be sent to the server
         """
-        return self.processServerToken(server_tok)
+        return self.updateSecurityContext(server_tok)
 
     SEC_LAYER_MASKS = {
         0: 1,

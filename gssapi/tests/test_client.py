@@ -51,7 +51,7 @@ class TestBasicClient(unittest.TestCase):
         self.client.mech_type.should_be_a('PyCapsule')
 
     def test_token_process(self):
-        init_token = self.client.createDefaultToken()
+        init_token = self.client.setupBaseSecurityContext()
 
         init_token.should_be_a(bytes)
         init_token.shouldnt_be_empty()
@@ -64,7 +64,7 @@ class TestBasicClient(unittest.TestCase):
         # "send" the token and get one back
         server_token = self.server.process_token(init_token)
 
-        final_token = self.client.processServerToken(server_token)
+        final_token = self.client.updateSecurityContext(server_token)
 
         try:
             final_token.should_be_none()
@@ -73,9 +73,9 @@ class TestBasicClient(unittest.TestCase):
             final_token.shouldnt_be_empty()
 
     def test_encrypt_decrypt(self):
-        init_token = self.client.createDefaultToken()
+        init_token = self.client.setupBaseSecurityContext()
         server_token = self.server.process_token(init_token)
-        self.client.processServerToken(server_token)
+        self.client.updateSecurityContext(server_token)
 
         enc_client_msg = self.client.encrypt('msg1')
 
