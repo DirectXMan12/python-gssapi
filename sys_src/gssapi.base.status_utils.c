@@ -1,5 +1,6 @@
 #include <Python.h>
 #include <gssapi.h>
+#include "py_compat.h"
 
 static PyObject *
 displayStatus(PyObject *self, PyObject *args, PyObject *keywds)
@@ -66,8 +67,11 @@ static PyMethodDef StatusUtilsMethods[] = {
     {NULL, NULL, 0, NULL} /* sentinel value */
 };
 
-PyMODINIT_FUNC
-initstatus_utils(void)
+MOD_INIT(status_utils)
 {
-    Py_InitModule("gssapi.base.status_utils", StatusUtilsMethods);
+    PyObject *module;
+    DEFINE_MODULE_STATELESS(module, "gssapi.base.status_utils",
+                            StatusUtilsMethods);
+
+    return MOD_SUCCESS(module);
 }

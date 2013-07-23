@@ -190,6 +190,6 @@ class TestWrapUnwrap(unittest.TestCase):
         qop.should_be_a(int)
         qop.should_be_at_least(0)
 
-        unwrapped_message.should_be_a(str)
+        unwrapped_message.should_be_a(bytes)
         unwrapped_message.shouldnt_be_empty()
-        unwrapped_message.should_be('test message')
+        unwrapped_message.should_be(b'test message')

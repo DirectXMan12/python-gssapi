@@ -1,16 +1,17 @@
 #include <Python.h>
 #include <gssapi.h>
 
+#include "py_compat.h"
+
 static PyMethodDef CTypesMethods[] = {
     {NULL, NULL, 0, NULL} // sentinel value
 };
 
-PyMODINIT_FUNC
-initctypes(void)
+MOD_INIT(ctypes)
 {
-    PyObject *module, *module_dict;
+    PyObject *module;
 
-    module = Py_InitModule("gssapi.base.ctypes", CTypesMethods);
+    DEFINE_MODULE_STATELESS(module, "gssapi.base.ctypes", CTypesMethods);
 
     PyObject *DELEG = PyInt_FromLong(GSS_C_DELEG_FLAG);
     PyObject *MUTUAL = PyInt_FromLong(GSS_C_MUTUAL_FLAG);
@@ -29,4 +30,6 @@ initctypes(void)
     PyModule_AddObject(module, "GSS_C_INTEG_FLAG", INTEG);
     PyModule_AddObject(module, "GSS_C_ANON_FLAG", ANON);
     PyModule_AddObject(module, "GSS_C_TRANS_FLAG", TRANS);
+
+    return MOD_SUCCESS(module);
 }

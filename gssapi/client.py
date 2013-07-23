@@ -315,8 +315,8 @@ class BasicSASLGSSClient(BasicGSSClient):
 
     SEC_LAYER_MASKS = {
         0: 1,
-        gss.RequirementFlag.integrity: 2,
-        gss.RequirementFlag.confidentiality: 4
+        int(gss.RequirementFlag.integrity): 2,
+        int(gss.RequirementFlag.confidentiality): 4
     }
 
     INV_SEC_LAYER_MASKS = None

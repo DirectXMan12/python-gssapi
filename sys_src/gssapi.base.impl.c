@@ -3,16 +3,43 @@
 #include <gssapi/gssapi_krb5.h>
 #include <stdio.h>
 
-#define DEBUG(mn, str, args...) printf("  %s: " str "\n", mn, args)
+#include "py_compat.h"
 
-PyObject *GSSError_class;
-PyObject *RequirementFlag_class;
-PyObject *MechType_class;
+#define DEBUG(str, args...) printf("  %s: " str "\n", __func__, args)
+
+struct module_state {
+    PyObject *GSSError_class;
+    PyObject *RequirementFlag_class;
+    PyObject *MechType_class;
+};
+
+STATESTUB;
+
+#ifdef PY3K
+    static int
+    impl_traverse(PyObject *m, visitproc visit, void *arg)
+    {
+        Py_VISIT(GETSTATE(m)->GSSError_class);
+        Py_VISIT(GETSTATE(m)->RequirementFlag_class);
+        Py_VISIT(GETSTATE(m)->MechType_class);
+        return 0;
+    }
+
+    static int
+    impl_clear(PyObject *m)
+    {
+        Py_DECREF(GETSTATE(m)->GSSError_class);
+        Py_DECREF(GETSTATE(m)->RequirementFlag_class);
+        Py_DECREF(GETSTATE(m)->MechType_class);
+        return 0;
+    }
+#endif
 
 /* Utility method to raise an error */
-static void raise_gss_error(OM_uint32 maj, OM_uint32 min)
+static void raise_gss_error(PyObject *m, OM_uint32 maj, OM_uint32 min)
 {
-    PyErr_SetObject(GSSError_class, Py_BuildValue("II", maj, min));
+    PyErr_SetObject(GETSTATE(m)->GSSError_class,
+                    Py_BuildValue("II", maj, min));
 }
 
 static PyObject *
@@ -73,7 +100,7 @@ importName(PyObject *self, PyObject *args)
         return out_name_obj;
     }
     else {
-        raise_gss_error(maj_stat, min_stat);
+        raise_gss_error(self, maj_stat, min_stat);
         return NULL;
     }
 }
@@ -100,7 +127,7 @@ releaseName(PyObject *self, PyObject *args)
         Py_RETURN_NONE;
     }
     else {
-       raise_gss_error(maj_stat, min_stat);
+       raise_gss_error(self, maj_stat, min_stat);
        return NULL;
     }
 }
@@ -109,12 +136,13 @@ releaseName(PyObject *self, PyObject *args)
                             !memcmp(a->elements, b->elements, a->length) )
 
 static PyObject *
-createMechType(gss_OID mech_type)
+createMechType(PyObject *self, gss_OID mech_type)
 {
     if (COMPARE_OIDS(mech_type, gss_mech_krb5)) {
         /* return MechType.kerberos */
         PyObject *argList = Py_BuildValue("(I)", 0);
-        PyObject *res = PyObject_CallObject(MechType_class, argList);
+        PyObject *res = PyObject_CallObject(GETSTATE(self)->MechType_class,
+                                            argList);
         Py_DECREF(argList);
         return res;
     }
@@ -124,12 +152,12 @@ createMechType(gss_OID mech_type)
 }
 
 static PyObject *
-createMechList(gss_OID_set mechs)
+createMechList(PyObject *self, gss_OID_set mechs)
 {
     PyObject *list = PyList_New(0);
     int i;
     for (i = 0; i < mechs->count; i++) {
-        PyObject *mech = createMechType(&(mechs->elements[i]));
+        PyObject *mech = createMechType(self, &(mechs->elements[i]));
 
         if (mech != Py_None) {
             PyList_Append(list, mech);
@@ -226,7 +254,7 @@ acquireCred(PyObject *self, PyObject *args, PyObject *keywds)
 
     if (maj_stat == GSS_S_COMPLETE) {
         PyObject *cap_creds = PyCapsule_New(creds, NULL, NULL);
-        PyObject *list_mechs = createMechList(actual_mechs);
+        PyObject *list_mechs = createMechList(self, actual_mechs);
         PyObject *res = Py_BuildValue("OOI",
                                       cap_creds, list_mechs, actual_ttl);
         Py_DECREF(cap_creds);
@@ -234,7 +262,7 @@ acquireCred(PyObject *self, PyObject *args, PyObject *keywds)
         return res;
     }
     else {
-        raise_gss_error(maj_stat, min_stat);
+        raise_gss_error(self, maj_stat, min_stat);
         return NULL;
     }
 }
@@ -258,7 +286,7 @@ releaseCred(PyObject *self, PyObject *args)
         Py_RETURN_NONE;
     }
     else {
-       raise_gss_error(maj_stat, min_stat);
+       raise_gss_error(self, maj_stat, min_stat);
        return NULL;
     }
 }
@@ -288,7 +316,8 @@ deleteSecContext(PyObject *self, PyObject *args)
 
     if (maj_stat == GSS_S_COMPLETE) {
         if (output_needed) {
-            PyObject *res = Py_BuildValue("s#", output_token.value,
+            PyObject *res = Py_BuildValue(BYTE_STR,
+                                          output_token.value,
                                           output_token.length);
             gss_release_buffer(&min_stat, &output_token);
             return res;
@@ -298,7 +327,7 @@ deleteSecContext(PyObject *self, PyObject *args)
         }
     }
     else {
-        raise_gss_error(maj_stat, min_stat);
+        raise_gss_error(self, maj_stat, min_stat);
         return NULL;
     }
 }
@@ -350,15 +379,16 @@ parseFlags(PyObject *flags_list, int default_flags)
     if (cflags & GSS_C_ ## name ## _FLAG) \
     { \
         PyObject *argList = Py_BuildValue("(I)", GSS_C_ ## name ## _FLAG); \
-        PyObject *resItem = PyObject_CallObject(RequirementFlag_class, \
-                                                argList); \
+        PyObject *resItem = \
+            PyObject_CallObject(GETSTATE(self)->RequirementFlag_class, \
+                                argList); \
         PyList_Append(flag_list, resItem); \
         Py_XDECREF(resItem); \
         Py_DECREF(argList); \
     }
 
 static PyObject *
-createFlagsList(int cflags)
+createFlagsList(PyObject *self, int cflags)
 {
     PyObject *flag_list = PyList_New(0);
 
@@ -441,8 +471,8 @@ acceptSecContext(PyObject *self, PyObject *args, PyObject *keywds)
     if (maj_stat == GSS_S_COMPLETE || maj_stat == GSS_S_CONTINUE_NEEDED) {
         PyObject *cap_ctx = PyCapsule_New(ctx, NULL, NULL);
         PyObject *cap_src_name = PyCapsule_New(src_name, NULL, NULL);
-        PyObject *cap_mech_type = createMechType(mech_type);
-        PyObject *reqs_out = createFlagsList(ret_flags);
+        PyObject *cap_mech_type = createMechType(self, mech_type);
+        PyObject *reqs_out = createFlagsList(self, ret_flags);
 
         PyObject *cap_delegated_cred;
         if (delegated_cred == GSS_C_NO_CREDENTIAL) {
@@ -463,7 +493,8 @@ acceptSecContext(PyObject *self, PyObject *args, PyObject *keywds)
             Py_INCREF(Py_False);
         }
 
-        PyObject *res = Py_BuildValue("OOOs#OIOO", cap_ctx, cap_src_name,
+        PyObject *res = Py_BuildValue(BYTE_TUPLE_STR("OOO","OIOO"),
+                                      cap_ctx, cap_src_name,
                                       cap_mech_type, output_token.value,
                                       output_token.length, reqs_out,
                                       output_ttl, cap_delegated_cred,
@@ -479,7 +510,7 @@ acceptSecContext(PyObject *self, PyObject *args, PyObject *keywds)
     }
     else
     {
-        raise_gss_error(maj_stat, min_stat);
+        raise_gss_error(self, maj_stat, min_stat);
         return NULL;
     }
 
@@ -551,8 +582,8 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
 
     if (maj_stat == GSS_S_COMPLETE || maj_stat == GSS_S_CONTINUE_NEEDED) {
         PyObject *cap_ctx = PyCapsule_New(ctx, NULL, NULL);
-        PyObject *cap_mech_type = createMechType(actual_mech_type);
-        PyObject *reqs_out = createFlagsList(ret_flags);
+        PyObject *cap_mech_type = createMechType(self, actual_mech_type);
+        PyObject *reqs_out = createFlagsList(self, ret_flags);
         PyObject *continue_needed;
         if (maj_stat == GSS_S_CONTINUE_NEEDED) {
             continue_needed = Py_True;
@@ -563,7 +594,8 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
             Py_INCREF(Py_False);
         }
 
-        PyObject *res = Py_BuildValue("OOOs#IO", cap_ctx, cap_mech_type,
+        PyObject *res = Py_BuildValue(BYTE_TUPLE_STR("OOO", "IO"),
+                                      cap_ctx, cap_mech_type,
                                       reqs_out, output_token.value,
                                       output_token.length, output_ttl,
                                       continue_needed);
@@ -576,7 +608,7 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
         return res;
     }
     else {
-        raise_gss_error(maj_stat, min_stat);
+        raise_gss_error(self, maj_stat, min_stat);
         return NULL;
     }
 }
@@ -627,7 +659,8 @@ wrap(PyObject *self, PyObject *args)
             Py_INCREF(Py_False);
         }
 
-        PyObject *res = Py_BuildValue("s#O", output_message_buffer.value,
+        PyObject *res = Py_BuildValue(BYTE_TUPLE_STR("", "O"),
+                                      output_message_buffer.value,
                                       output_message_buffer.length,
                                       conf_state_out);
 
@@ -636,7 +669,7 @@ wrap(PyObject *self, PyObject *args)
         return res;
     }
     else {
-        raise_gss_error(maj_stat, min_stat);
+        raise_gss_error(self, maj_stat, min_stat);
         return NULL;
     }
 }
@@ -680,7 +713,8 @@ unwrap(PyObject *self, PyObject *args)
             Py_INCREF(Py_False);
         }
 
-        PyObject *res = Py_BuildValue("s#OI", output_message_buffer.value,
+        PyObject *res = Py_BuildValue(BYTE_TUPLE_STR("", "OI"),
+                                      output_message_buffer.value,
                                       output_message_buffer.length,
                                       conf_state_out, qop_state);
         gss_release_buffer(&min_stat, &output_message_buffer);
@@ -688,7 +722,7 @@ unwrap(PyObject *self, PyObject *args)
         return res;
     }
     else {
-        raise_gss_error(maj_stat, min_stat);
+        raise_gss_error(self, maj_stat, min_stat);
         return NULL;
     }
 }
@@ -717,25 +751,36 @@ static PyMethodDef GSSAPIMethods[] = {
     {NULL, NULL, 0, NULL} /* sentinel value */
 };
 
-PyMODINIT_FUNC
-initimpl(void)
+MOD_INIT(impl)
 {
-    Py_InitModule("gssapi.base.impl", GSSAPIMethods);
+    PyObject *module;
+    DEFINE_MODULE(module, "gssapi.base.impl", GSSAPIMethods,
+                  impl_traverse, impl_clear, struct module_state);
 
     PyObject *types_module = PyImport_ImportModule("gssapi.base.types");
 
         PyObject *gsserror_attr_name = PyString_FromString("GSSError");
-        GSSError_class = PyObject_GetAttr(types_module, gsserror_attr_name);
+
+            GETSTATE(module)->GSSError_class =
+                PyObject_GetAttr(types_module, gsserror_attr_name);
+
         Py_DECREF(gsserror_attr_name); /* we don't need it any more */
 
         PyObject *requirementflag_attr_name = PyString_FromString("RequirementFlag");
-        RequirementFlag_class = PyObject_GetAttr(types_module,
-                                                 requirementflag_attr_name);
+
+            GETSTATE(module)->RequirementFlag_class =
+                PyObject_GetAttr(types_module, requirementflag_attr_name);
+
         Py_DECREF(requirementflag_attr_name); /* we don't need it any more */
 
         PyObject *mechtype_attr_name = PyString_FromString("MechType");
-        MechType_class = PyObject_GetAttr(types_module, mechtype_attr_name);
+
+            GETSTATE(module)->MechType_class =
+                PyObject_GetAttr(types_module, mechtype_attr_name);
+
         Py_DECREF(mechtype_attr_name); /* we don't need it any more */
 
     Py_DECREF(types_module); /* we don't need it any more */
+
+    return MOD_SUCCESS(module);
 }
