@@ -669,8 +669,7 @@ getMIC(PyObject *self, PyObject *args)
                                &token_buffer);
     Py_END_ALLOW_THREADS
 
-    if (maj_stat == GSS_S_COMPLETE)
-    {
+    if (maj_stat == GSS_S_COMPLETE) {
         PyObject *res = Py_BuildValue(BYTE_STR, token_buffer.value,
                                                 token_buffer.length);
 
@@ -679,13 +678,66 @@ getMIC(PyObject *self, PyObject *args)
 
         return res;
     }
-    else
-    {
+    else {
         raise_gss_error(self, maj_stat, min_stat);
         return NULL;
     }
 }
 
+static PyObject *
+verifyMIC(PyObject *self, PyObject *args)
+{
+    PyObject *raw_ctx;
+    const char *message;
+    int message_len;
+    const char *token;
+    int token_len;
+    int return_bool = 0;
+
+    if (!PyArg_ParseTuple(args, "Os#s#|I", &raw_ctx, &message, &message_len,
+                          &token, &token_len, &return_bool))
+        return NULL;
+
+    gss_ctx_id_t ctx = GET_CAPSULE_DEREF(gss_ctx_id_t, raw_ctx);
+    gss_buffer_desc message_buffer = GSS_C_EMPTY_BUFFER;
+    gss_buffer_desc token_buffer = GSS_C_EMPTY_BUFFER;
+
+    message_buffer.length = message_len;
+    message_buffer.value = message;
+
+    token_buffer.length = token_len;
+    token_buffer.value = token;
+
+    gss_qop_t qop_state;
+
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+
+    Py_BEGIN_ALLOW_THREADS
+        maj_stat = gss_verify_mic(&min_stat, ctx, &message_buffer,
+                                  &token_buffer, &qop_state);
+    Py_END_ALLOW_THREADS
+
+    if (maj_stat == GSS_S_COMPLETE || maj_stat == GSS_S_DUPLICATE_TOKEN) {
+        if (return_bool) {
+            return Py_BuildValue("OIII", Py_True, qop_state,
+                                 maj_stat, min_stat);
+        }
+        else {
+            return PyInt_FromLong(qop_state);
+        }
+    }
+    else {
+        if (return_bool) {
+            return Py_BuildValue("OIII", Py_False, qop_state,
+                                 maj_stat, min_stat);
+        }
+        else {
+            raise_gss_error(self, maj_stat, min_stat);
+            return NULL;
+        }
+    }
+}
 
 static PyObject *
 wrap(PyObject *self, PyObject *args)
@@ -818,6 +870,8 @@ static PyMethodDef GSSAPIMethods[] = {
      "Release a GSS security context"},
     {"getMIC", getMIC, METH_VARARGS,
      "Generate a cryptographic MIC for a message"},
+    {"verifyMIC", verifyMIC, METH_VARARGS,
+     "Verify that a MIC matches a message"},
     {"unwrap", unwrap, METH_VARARGS,
      "Unwrap and possibly decrypt a message"},
     {"wrap", wrap, METH_VARARGS,

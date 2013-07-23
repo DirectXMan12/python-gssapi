@@ -188,6 +188,40 @@ class TestWrapUnwrap(unittest.TestCase):
         mic_token.should_be_a(bytes)
         mic_token.shouldnt_be_empty()
 
+    def test_basic_verify_mic(self):
+        mic_token = gb.getMIC(self.client_ctx, "some message")
+
+        qop_used = gb.verifyMIC(self.server_ctx, "some message", mic_token)
+
+        qop_used.should_be_a(int)
+
+        # test a bad MIC
+        gb.verifyMIC.should_raise(gb.GSSError, self.server_ctx,
+                                  "some other message", "some invalid mic")
+
+    def test_bool_verify_mic(self):
+        mic_token = gb.getMIC(self.client_ctx, "some message")
+
+        (was_valid, qop_used, majs, mins) = gb.verifyMIC(self.server_ctx,
+                                                         "some message",
+                                                         mic_token,
+                                                         True)
+
+        was_valid.should_be_true()
+        qop_used.should_be_a(int)
+        majs.should_be_a(int)
+        mins.should_be_a(int)
+
+        (was_valid2, qop_used, majs, mins) = gb.verifyMIC(self.server_ctx,
+                                                          "some new message",
+                                                          "some invalid mic",
+                                                          True)
+
+        was_valid2.should_be_false()
+        qop_used.should_be_a(int)
+        majs.should_be_a(int)
+        mins.should_be_a(int)
+
     def test_basic_wrap_unwrap(self):
         (wrapped_message, conf) = gb.wrap(self.client_ctx, 'test message')
 

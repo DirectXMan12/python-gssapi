@@ -201,6 +201,39 @@ def getMIC(ctx, message, qop=None):
     """
 
 
+def verifyMIC(ctx, message, token, return_bool=False):
+    """
+    Verifies a Message's MIC
+
+    This method verifies that the message matches the given message integrity
+    code (token).
+
+    .. note::
+
+       This method does not throw an error on GSS_S_DUPLICATE_TOKEN,
+       which simply indicates that the token was valid and contained
+       the correct MIC for the message, but had already be processed.
+       Instead, it simply returns that the MIC was valid, since this
+       is not really an error.
+
+    :param ctx: the current security context
+    :param bytes message: the message in question
+    :param bytes token: the MIC token for the message in question
+    :param bool return_bool: see return value explanation
+    :returns: this depends on the value of :param:`return_bool`.
+              If False, the QoP used to generate the MIC is returned
+              if the verification is successfull, and and error is raised
+              otherwise.
+              If True, a tuple is returned containing whether or not the
+              MIC was valid, the QoP used, the major result code, and the
+              minor result code (which can be interpreted with
+              :func:`gssapi.base.status_utils.displayStatus`)
+    :rtype: int or (bool, int, int, int)
+    :except GSSError: if there is an error and :param:`return_bool`
+                      is set to False
+    """
+
+
 def wrap(context, message, confidential=True, qop=None):
     """
     Wraps a message
