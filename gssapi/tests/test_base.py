@@ -42,6 +42,13 @@ class TestBaseUtilities(unittest.TestCase):
         exported_name.should_be_a(bytes)
         exported_name.shouldnt_be_empty()
 
+    def test_duplicate_name(self):
+        orig_name = gb.importName(TARGET_SERVICE_NAME)
+        new_name = gb.duplicateName(orig_name)
+
+        new_name.shouldnt_be_none()
+        gb.compareName(orig_name, new_name).should_be_true()
+
     def test_display_name(self):
         imported_name = gb.importName(TARGET_SERVICE_NAME)
         displ_resp = gb.displayName(imported_name)

@@ -81,6 +81,7 @@ def exportName(name):
     :param name: a valid GSSAPI mechanism name
     :returns: a string version of the mechanism name
     :rtype: bytes
+    :except GSSError:
     """
 
 
@@ -102,6 +103,22 @@ def canonicalizeName(name, mech_type):
     :type mech_type: :class:`gssapi.base.types.MechanismType`
     :returns: a canonicalized name
     :rtype: PyCapsule
+    :except GSSError:
+    """
+
+
+def duplicateName(name):
+    """
+    Duplicates a GSSAPI Name
+
+    This method duplicates an existing GSSAPI name.
+    Releasing the old name will not release the new
+    name, etc.
+
+    :param name: the name to duplicate
+    :returns: a new name identical to the old name
+    :rtype: PyCapsule
+    :except GSSError:
     """
 
 

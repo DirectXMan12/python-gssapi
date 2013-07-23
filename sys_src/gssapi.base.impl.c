@@ -523,6 +523,27 @@ canonicalizeName(PyObject *self, PyObject *args)
     }
 }
 
+static PyObject *
+duplicateName(PyObject *self, PyObject *raw_name)
+{
+    gss_name_t name = GET_CAPSULE(gss_name_t, raw_name);
+
+    gss_name_t new_name;
+
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+
+    maj_stat = gss_duplicate_name(&min_stat, name, &new_name);
+
+    if (maj_stat == GSS_S_COMPLETE) {
+        return PyCapsule_New(new_name, NULL, NULL);
+    }
+    else {
+        raise_gss_error(self, maj_stat, min_stat);
+        return NULL;
+    }
+}
+
 static int
 parseFlags(PyObject *flags_list, int default_flags)
 {
@@ -1040,6 +1061,8 @@ static PyMethodDef GSSAPIMethods[] = {
      "Export a GSSAPI Mechanism Name"},
     {"canonicalizeName", canonicalizeName, METH_VARARGS,
      "Canonicalize an Abitrary GSSAPI Name into a Mechanim Name"},
+    {"duplicateName", duplicateName, METH_O,
+     "Duplicate a GSSAPI Name"},
     {"indicateMechs", indicateMechs, METH_NOARGS,
      "List the mechanisms supported by the current implementation"},
     {"acquireCred", acquireCred, METH_VARARGS | METH_KEYWORDS,
