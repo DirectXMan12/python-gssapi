@@ -5,7 +5,7 @@ import gssapi.base as gb
 
 
 TARGET_SERVICE_NAME = 'host'
-INITIATOR_PRINICIPLE = 'admin'
+INITIATOR_PRINCIPLE = 'admin'
 
 
 class TestBaseUtilities(unittest.TestCase):
@@ -40,6 +40,20 @@ class TestBaseUtilities(unittest.TestCase):
 
         out_type.shouldnt_be_none()
         out_type.should_be(gb.NameType.hostbased_service)
+
+    def test_compare_name(self):
+        service_name1 = gb.importName(TARGET_SERVICE_NAME)
+        service_name2 = gb.importName(TARGET_SERVICE_NAME)
+        init_name = gb.importName(INITIATOR_PRINCIPLE, gb.NameType.principal)
+
+        gb.compareName(service_name1, service_name2).should_be_true()
+        gb.compareName(service_name2, service_name1).should_be_true()
+
+        gb.compareName(service_name1, init_name).should_be_false()
+
+        gb.releaseName(service_name1)
+        gb.releaseName(service_name2)
+        gb.releaseName(init_name)
 
     def test_get_mech_type(mech_type):
         mech_type = gb.getMechanismType(gb.MechType.kerberos)

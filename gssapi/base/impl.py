@@ -48,6 +48,20 @@ def displayName(name):
     """
 
 
+def compareName(name1, name2):
+    """
+    Compares Two GSSAPI Names
+
+    This method compares to GSSAPI names to see if they are
+    equal.
+
+    :param name1: the first name to compare
+    :param name2: the second name to compare
+    :returns: whether or not the two names are equal
+    :rtype: bool
+    """
+
+
 def releaseName(name_obj):
     """
     Releases a GSSAPI Name

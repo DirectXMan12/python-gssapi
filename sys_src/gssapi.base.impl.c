@@ -167,6 +167,42 @@ displayName(PyObject *self, PyObject *raw_name)
 }
 
 static PyObject *
+compareName(PyObject *self, PyObject *args)
+{
+    PyObject *raw_name1;
+    PyObject *raw_name2;
+
+    if (!PyArg_ParseTuple(args, "OO", &raw_name1, &raw_name2))
+        return NULL;
+
+    gss_name_t name1 = GET_CAPSULE(gss_name_t, raw_name1);
+    gss_name_t name2 = GET_CAPSULE(gss_name_t, raw_name2);
+
+    int name_eq;
+
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+
+    maj_stat = gss_compare_name (&min_stat, name1, name2, &name_eq);
+
+    if (maj_stat == GSS_S_COMPLETE) {
+        if (name_eq) {
+            Py_INCREF(Py_True);
+            return Py_True;
+        }
+        else {
+            Py_INCREF(Py_False);
+            return Py_False;
+        }
+    }
+    else {
+        raise_gss_error(self, maj_stat, min_stat);
+        return NULL;
+    }
+}
+
+
+static PyObject *
 releaseName(PyObject *self, PyObject *args)
 {
     PyObject *name_obj;
@@ -947,6 +983,8 @@ static PyMethodDef GSSAPIMethods[] = {
      "Convert a string name and type into a GSSAPI name object"},
     {"displayName", displayName, METH_O,
      "Convert a GSSAPI name back into a string and a NameType"},
+    {"compareName", compareName, METH_VARARGS,
+     "Compare Two GSSAPI Names"},
     {"indicateMechs", indicateMechs, METH_NOARGS,
      "List the mechanisms supported by the current implementation"},
     {"acquireCred", acquireCred, METH_VARARGS | METH_KEYWORDS,
