@@ -234,6 +234,24 @@ def verifyMIC(ctx, message, token, return_bool=False):
     """
 
 
+def wrapSizeLimit(ctx, output_size, confidential=True, qop=None):
+    """
+    Calculates the Max Message Size
+
+    This method calculates the maxium size that a message can be
+    in order to have the wrapped message fit within the given size.
+
+    :param ctx: the current security context
+    :param int output_size: the desired maxiumum wrapped message size
+    :param bool conf_req: whether or not encryption is to be used when
+                          wrapping the message
+    :param qop: the desired Quality of Protection (or None for default)
+    :type qop: int or None
+    :returns: the max unwrapped message size
+    :rtype: int
+    """
+
+
 def wrap(context, message, confidential=True, qop=None):
     """
     Wraps a message

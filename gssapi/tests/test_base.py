@@ -222,6 +222,17 @@ class TestWrapUnwrap(unittest.TestCase):
         majs.should_be_a(int)
         mins.should_be_a(int)
 
+    def test_wrap_size_limit(self):
+        with_conf = gb.wrapSizeLimit(self.client_ctx, 100)
+        without_conf = gb.wrapSizeLimit(self.client_ctx, 100,
+                                        confidential=False)
+
+        with_conf.should_be_a(int)
+        without_conf.should_be_a(int)
+
+        without_conf.should_be_less_than(100)
+        with_conf.should_be_less_than(100)
+
     def test_basic_wrap_unwrap(self):
         (wrapped_message, conf) = gb.wrap(self.client_ctx, 'test message')
 

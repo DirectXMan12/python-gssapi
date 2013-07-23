@@ -740,6 +740,42 @@ verifyMIC(PyObject *self, PyObject *args)
 }
 
 static PyObject *
+wrapSizeLimit(PyObject *self, PyObject *args, PyObject **keywds)
+{
+    PyObject *raw_ctx;
+    int message_size;
+    int conf_req = 1;
+    int qop_req = 0;
+
+    static char *kwlist[] = {"ctx", "output_size", "confidential", "qop"};
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "OI|II", kwlist,
+                                      &raw_ctx, &message_size,
+                                      &conf_req, &qop_req))
+        return NULL;
+
+    gss_ctx_id_t ctx = GET_CAPSULE_DEREF(gss_ctx_id_t, raw_ctx);
+
+    OM_uint32 max_input_size;
+
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+
+    Py_BEGIN_ALLOW_THREADS
+        maj_stat = gss_wrap_size_limit(&min_stat, ctx, conf_req, qop_req,
+                                       message_size, &max_input_size);
+    Py_END_ALLOW_THREADS
+
+    if (maj_stat == GSS_S_COMPLETE) {
+        return PyInt_FromLong(max_input_size);
+    }
+    else {
+        raise_gss_error(self, maj_stat, min_stat);
+        return NULL;
+    }
+}
+
+static PyObject *
 wrap(PyObject *self, PyObject *args)
 {
     PyObject *raw_ctx;
@@ -872,6 +908,8 @@ static PyMethodDef GSSAPIMethods[] = {
      "Generate a cryptographic MIC for a message"},
     {"verifyMIC", verifyMIC, METH_VARARGS,
      "Verify that a MIC matches a message"},
+    {"wrapSizeLimit", wrapSizeLimit, METH_VARARGS | METH_KEYWORDS,
+     "Calculate the maximum input message size for an output message size"},
     {"unwrap", unwrap, METH_VARARGS,
      "Unwrap and possibly decrypt a message"},
     {"wrap", wrap, METH_VARARGS,
