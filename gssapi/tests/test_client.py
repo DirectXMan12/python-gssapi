@@ -84,10 +84,10 @@ class TestBasicClient(unittest.TestCase):
         enc_client_msg.should_be_longer_than('msg1')
 
         dec_client_msg = self.server.decrypt(enc_client_msg)
-        dec_client_msg.should_be('msg1')
+        dec_client_msg.should_be(b'msg1')
 
         enc_server_msg = self.server.encrypt('msg2')
         dec_server_msg = self.client.decrypt(enc_server_msg)
 
         dec_server_msg.should_be_a(bytes)
-        dec_server_msg.should_be('msg2')
+        dec_server_msg.should_be(b'msg2')
