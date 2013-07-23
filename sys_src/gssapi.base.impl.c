@@ -201,6 +201,27 @@ compareName(PyObject *self, PyObject *args)
     }
 }
 
+static PyObject *
+exportName(PyObject *self, PyObject *raw_name)
+{
+    gss_name_t name = GET_CAPSULE(gss_name_t, raw_name);
+
+    gss_buffer_desc exported_name = GSS_C_EMPTY_BUFFER;
+
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+
+    maj_stat = gss_export_name(&min_stat, name, &exported_name);
+
+    if (maj_stat == GSS_S_COMPLETE) {
+        return Py_BuildValue(BYTE_STR, exported_name.value,
+                             exported_name.length);
+    }
+    else {
+        raise_gss_error(self, maj_stat, min_stat);
+        return NULL;
+    }
+}
 
 static PyObject *
 releaseName(PyObject *self, PyObject *args)
@@ -448,6 +469,18 @@ deleteSecContext(PyObject *self, PyObject *args)
     }
 }
 
+static gss_OID
+getMechTypeInternal(int mech_type)
+{
+    switch (mech_type) {
+        case 0:
+            return gss_mech_krb5;
+        default:
+            /* TODO(sross): raise exception */
+            return GSS_C_NO_OID;
+    }
+}
+
 static PyObject *
 getMechanismType(PyObject *self, PyObject *args)
 {
@@ -456,20 +489,38 @@ getMechanismType(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i", &raw_mech_type))
         return NULL;
 
-    gss_OID mech_type;
-
-    switch (raw_mech_type) {
-        case 0:
-            mech_type = gss_mech_krb5;
-            break;
-        default:
-            /* TODO(sross): raise exception */
-            mech_type = GSS_C_NO_OID;
-            break;
-    }
+    gss_OID mech_type = getMechTypeInternal(raw_mech_type);
 
     PyObject *cap_mech_type = PyCapsule_New(mech_type, NULL, NULL);
     return cap_mech_type;
+}
+
+static PyObject *
+canonicalizeName(PyObject *self, PyObject *args)
+{
+    PyObject *raw_name;
+    int raw_mech_type;
+
+    if (!PyArg_ParseTuple(args, "Oi", &raw_name, &raw_mech_type))
+        return NULL;
+
+    gss_name_t name = GET_CAPSULE(gss_name_t, raw_name);
+    gss_OID mech_type = getMechTypeInternal(raw_mech_type);
+
+    gss_name_t output_name;
+
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+
+    maj_stat = gss_canonicalize_name(&min_stat, name, mech_type, &output_name);
+
+    if (maj_stat == GSS_S_COMPLETE) {
+        return PyCapsule_New(output_name, NULL, NULL);
+    }
+    else {
+        raise_gss_error(self, maj_stat, min_stat);
+        return NULL;
+    }
 }
 
 static int
@@ -985,6 +1036,10 @@ static PyMethodDef GSSAPIMethods[] = {
      "Convert a GSSAPI name back into a string and a NameType"},
     {"compareName", compareName, METH_VARARGS,
      "Compare Two GSSAPI Names"},
+    {"exportName", exportName, METH_O,
+     "Export a GSSAPI Mechanism Name"},
+    {"canonicalizeName", canonicalizeName, METH_VARARGS,
+     "Canonicalize an Abitrary GSSAPI Name into a Mechanim Name"},
     {"indicateMechs", indicateMechs, METH_NOARGS,
      "List the mechanisms supported by the current implementation"},
     {"acquireCred", acquireCred, METH_VARARGS | METH_KEYWORDS,

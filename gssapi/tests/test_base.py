@@ -5,7 +5,7 @@ import gssapi.base as gb
 
 
 TARGET_SERVICE_NAME = 'host'
-INITIATOR_PRINCIPLE = 'admin'
+INITIATOR_PRINCIPAL = 'admin'
 
 
 class TestBaseUtilities(unittest.TestCase):
@@ -26,6 +26,22 @@ class TestBaseUtilities(unittest.TestCase):
 
         gb.releaseName(imported_name)
 
+    def test_canonicalize_export_name(self):
+        imported_name = gb.importName(INITIATOR_PRINCIPAL,
+                                      gb.NameType.principal)
+
+        canonicalized_name = gb.canonicalizeName(imported_name,
+                                                 gb.MechType.kerberos)
+
+        canonicalized_name.shouldnt_be_none()
+        canonicalized_name.should_be_a("PyCapsule")
+
+        exported_name = gb.exportName(canonicalized_name)
+
+        exported_name.shouldnt_be_none()
+        exported_name.should_be_a(bytes)
+        exported_name.shouldnt_be_empty()
+
     def test_display_name(self):
         imported_name = gb.importName(TARGET_SERVICE_NAME)
         displ_resp = gb.displayName(imported_name)
@@ -44,7 +60,7 @@ class TestBaseUtilities(unittest.TestCase):
     def test_compare_name(self):
         service_name1 = gb.importName(TARGET_SERVICE_NAME)
         service_name2 = gb.importName(TARGET_SERVICE_NAME)
-        init_name = gb.importName(INITIATOR_PRINCIPLE, gb.NameType.principal)
+        init_name = gb.importName(INITIATOR_PRINCIPAL, gb.NameType.principal)
 
         gb.compareName(service_name1, service_name2).should_be_true()
         gb.compareName(service_name2, service_name1).should_be_true()
