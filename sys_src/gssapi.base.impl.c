@@ -195,6 +195,31 @@ createOIDMechSet(PyObject *list)
     return set;
 }
 
+static PyObject *
+indicateMechs(PyObject *self, PyObject *noargs)
+{
+    gss_OID_set mech_set;
+
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+
+    maj_stat = gss_indicate_mechs(&min_stat, &mech_set);
+
+    if (maj_stat == GSS_S_COMPLETE)
+    {
+        PyObject *mech_list = createMechList(self, mech_set);
+        OM_uint32 min_stat_release;
+        gss_release_oid_set(&min_stat_release, &mech_set);
+
+        return mech_list;
+    }
+    else
+    {
+        raise_gss_error(self, maj_stat, min_stat);
+        return NULL;
+    }
+}
+
 #define CAPSULE_OR_DEFAULT(type, obj, def) \
             ( obj == Py_None ? def : GET_CAPSULE(type, obj))
 
@@ -730,6 +755,8 @@ unwrap(PyObject *self, PyObject *args)
 static PyMethodDef GSSAPIMethods[] = {
     {"importName", importName, METH_VARARGS,
      "Convert a string name and type into a GSSAPI name object"},
+    {"indicateMechs", indicateMechs, METH_NOARGS,
+     "List the mechanisms supported by the current implementation"},
     {"acquireCred", acquireCred, METH_VARARGS | METH_KEYWORDS,
      "Acquire credentials from a name object"},
     {"releaseName", releaseName, METH_VARARGS,

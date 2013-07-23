@@ -9,6 +9,15 @@ INITIATOR_PRINICIPLE = 'admin'
 
 
 class TestBaseUtilities(unittest.TestCase):
+    def test_indicate_mechs(self):
+        mechs = gb.indicateMechs()
+
+        mechs.shouldnt_be_none()
+        mechs.should_be_a(list)
+
+        mechs.shouldnt_be_empty()
+        mechs.should_include(gb.MechType.kerberos)
+
     def test_import_name(self):
         imported_name = gb.importName(TARGET_SERVICE_NAME)
 

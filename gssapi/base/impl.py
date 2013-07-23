@@ -1,6 +1,19 @@
 from gssapi.base.types import NameType
 
 
+def indicateMechs():
+    """
+    Gets the Currently Supported GSS Mechanisms
+
+    This method gets a list of the GSS mechanisms
+    supported by the current GSSAPI implementation
+
+    :returns: the supported mechanisms
+    :rtype: [:class:`gssapi.base.types.MechType`]
+    :except GSSError:
+    """
+
+
 def importName(name, name_type=NameType.hostbased_service):
     """
     Gets a GSSAPI Name
