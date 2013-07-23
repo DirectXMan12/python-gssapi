@@ -224,14 +224,9 @@ exportName(PyObject *self, PyObject *raw_name)
 }
 
 static PyObject *
-releaseName(PyObject *self, PyObject *args)
+releaseName(PyObject *self, PyObject *raw_name)
 {
-    PyObject *name_obj;
-
-    if (!PyArg_ParseTuple(args, "O", &name_obj))
-        return NULL;
-
-    gss_name_t name = GET_CAPSULE(gss_name_t, name_obj);
+    gss_name_t name = GET_CAPSULE(gss_name_t, raw_name);
 
     OM_uint32 maj_stat;
     OM_uint32 min_stat;
@@ -405,13 +400,8 @@ acquireCred(PyObject *self, PyObject *args, PyObject *keywds)
 }
 
 static PyObject *
-releaseCred(PyObject *self, PyObject *args)
+releaseCred(PyObject *self, PyObject *raw_creds)
 {
-    PyObject *raw_creds;
-
-    if (!PyArg_ParseTuple(args, "O", &raw_creds))
-        return NULL;
-
     gss_cred_id_t creds = GET_CAPSULE(gss_cred_id_t, raw_creds);
 
     OM_uint32 maj_stat;
@@ -1067,9 +1057,9 @@ static PyMethodDef GSSAPIMethods[] = {
      "List the mechanisms supported by the current implementation"},
     {"acquireCred", acquireCred, METH_VARARGS | METH_KEYWORDS,
      "Acquire credentials from a name object"},
-    {"releaseName", releaseName, METH_VARARGS,
+    {"releaseName", releaseName, METH_O,
      "Release a GSSAPI name"},
-    {"releaseCred", releaseCred, METH_VARARGS,
+    {"releaseCred", releaseCred, METH_O,
      "Release GSSAPI credentials"},
     {"initSecContext", initSecContext, METH_VARARGS | METH_KEYWORDS,
      "Initialize a GSS security context"},
