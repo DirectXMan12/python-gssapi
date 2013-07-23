@@ -641,6 +641,53 @@ initSecContext(PyObject *self, PyObject *args, PyObject *keywds)
 #define INT_OR_DEFAULT(obj, def) VALUE_OR_DEFAULT(obj, PyInt_AsLong(obj), def)
 
 static PyObject *
+getMIC(PyObject *self, PyObject *args)
+{
+    PyObject *raw_ctx;
+    const char *message;
+    int message_len;
+    PyObject *raw_qop = Py_None;
+
+    if (!PyArg_ParseTuple(args, "Os#|O", &raw_ctx, &message,
+                          &message_len, &raw_qop))
+        return NULL;
+
+    gss_ctx_id_t ctx = GET_CAPSULE_DEREF(gss_ctx_id_t, raw_ctx);
+    gss_buffer_desc message_buffer = GSS_C_EMPTY_BUFFER;
+    OM_uint32 qop_req = INT_OR_DEFAULT(raw_qop, GSS_C_QOP_DEFAULT);
+
+    message_buffer.length = message_len;
+    message_buffer.value = message;
+
+    gss_buffer_desc token_buffer = GSS_C_EMPTY_BUFFER;
+
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+
+    Py_BEGIN_ALLOW_THREADS
+        maj_stat = gss_get_mic(&min_stat, ctx, qop_req, &message_buffer,
+                               &token_buffer);
+    Py_END_ALLOW_THREADS
+
+    if (maj_stat == GSS_S_COMPLETE)
+    {
+        PyObject *res = Py_BuildValue(BYTE_STR, token_buffer.value,
+                                                token_buffer.length);
+
+        OM_uint32 release_min_stat;
+        gss_release_buffer(&release_min_stat, &token_buffer);
+
+        return res;
+    }
+    else
+    {
+        raise_gss_error(self, maj_stat, min_stat);
+        return NULL;
+    }
+}
+
+
+static PyObject *
 wrap(PyObject *self, PyObject *args)
 {
     PyObject *raw_ctx;
@@ -769,6 +816,8 @@ static PyMethodDef GSSAPIMethods[] = {
      "Accept a GSS security context"},
     {"deleteSecContext", deleteSecContext, METH_VARARGS,
      "Release a GSS security context"},
+    {"getMIC", getMIC, METH_VARARGS,
+     "Generate a cryptographic MIC for a message"},
     {"unwrap", unwrap, METH_VARARGS,
      "Unwrap and possibly decrypt a message"},
     {"wrap", wrap, METH_VARARGS,

@@ -181,6 +181,13 @@ class TestWrapUnwrap(unittest.TestCase):
         gb.deleteSecContext(self.client_ctx)
         gb.deleteSecContext(self.server_ctx)
 
+    def test_get_mic(self):
+        mic_token = gb.getMIC(self.client_ctx, "some message")
+
+        mic_token.shouldnt_be_none()
+        mic_token.should_be_a(bytes)
+        mic_token.shouldnt_be_empty()
+
     def test_basic_wrap_unwrap(self):
         (wrapped_message, conf) = gb.wrap(self.client_ctx, 'test message')
 

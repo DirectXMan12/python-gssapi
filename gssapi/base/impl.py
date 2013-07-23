@@ -181,6 +181,26 @@ def getMechanismType(mech_type):
     """
 
 
+def getMIC(ctx, message, qop=None):
+    """
+    Generates a MIC for a Message
+
+    This method generates a cryptographic message integrity code
+    for the supplied method.  The QoP can be changed to vary the
+    algorithm used.  The output is a token that can be transfered
+    to a peer application.
+
+    :param ctx: the current security context
+    :param bytes message: the message for which the MIC is to be generated
+    :param qop: the quality of protection (used to change which algorithm
+                is used) (supply None for default)
+    :type qop: int or None
+    :returns: the MIC encoded into a token
+    :rtype: bytes
+    :except GSSError:
+    """
+
+
 def wrap(context, message, confidential=True, qop=None):
     """
     Wraps a message
