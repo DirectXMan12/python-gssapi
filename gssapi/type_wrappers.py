@@ -11,7 +11,8 @@ class GSSName(object):
     good str and repr values.
     """
 
-    def __init__(self, name, name_type=gss.NameType.hostbased_service):
+    def __init__(self, name, name_type=gss.NameType.hostbased_service,
+                 create_cap=True):
         """
         Creates a GSSName
 
@@ -24,7 +25,9 @@ class GSSName(object):
 
         self.name_type = name_type
         self.name = name
-        self.capsule = gss.importName(self.name, self.name_type)
+
+        if create_cap:
+            self.capsule = gss.importName(self.name, self.name_type)
 
     def __del__(self):
         gss.releaseName(self.capsule)
@@ -34,3 +37,11 @@ class GSSName(object):
 
     def __repr__(self):
         return "<gss name ({0}): {1}>".format(self.name_type, self.name)
+
+    def __eq__(self, target):
+        return gss.compareName(self.capsule, target.capsule)
+
+    def __deepcopy__(self, memo):
+        cpy = GSSName(self.name, self.name_type, create_cap=False)
+        cpy.capsule = gss.duplicateName(self.capsule)
+        return cpy
