@@ -26,6 +26,21 @@ class TestBaseUtilities(unittest.TestCase):
 
         gb.releaseName(imported_name)
 
+    def test_display_name(self):
+        imported_name = gb.importName(TARGET_SERVICE_NAME)
+        displ_resp = gb.displayName(imported_name)
+
+        displ_resp.shouldnt_be_none()
+
+        (displayed_name, out_type) = displ_resp
+
+        displayed_name.shouldnt_be_none()
+        displayed_name.should_be_a(bytes)
+        displayed_name.should_be(TARGET_SERVICE_NAME.encode('utf-8'))
+
+        out_type.shouldnt_be_none()
+        out_type.should_be(gb.NameType.hostbased_service)
+
     def test_get_mech_type(mech_type):
         mech_type = gb.getMechanismType(gb.MechType.kerberos)
 

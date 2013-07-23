@@ -32,6 +32,22 @@ def importName(name, name_type=NameType.hostbased_service):
     """
 
 
+def displayName(name):
+    """
+    Converts a GSSAPI Name into a String
+
+    This function is essentially the opposite of :func:`importName`:
+    it takes a GSSAPI name and converts it back into a string and
+    name type.
+
+    :param name: a GSSAPI name capsule
+    :returns: a tuple containing the string-version of the name
+              and its name type
+    :rtype: (bytes, :class:`gssapi.base.types.NameType`)
+    :except GSSError:
+    """
+
+
 def releaseName(name_obj):
     """
     Releases a GSSAPI Name

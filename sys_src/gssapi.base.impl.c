@@ -11,6 +11,7 @@ struct module_state {
     PyObject *GSSError_class;
     PyObject *RequirementFlag_class;
     PyObject *MechType_class;
+    PyObject *NameType_class;
 };
 
 STATESTUB;
@@ -104,9 +105,66 @@ importName(PyObject *self, PyObject *args)
         return NULL;
     }
 }
+#define COMPARE_OIDS(a,b) ( (a->length == b->length) && \
+                            !memcmp(a->elements, b->elements, a->length) )
+
+#define CHECK_AND_RETURN_NAME_TYPE(var, target, pytarget) \
+    if (COMPARE_OIDS(var, target)) { \
+        PyObject *argList = Py_BuildValue("(I)", pytarget); \
+        PyObject *res = PyObject_CallObject(GETSTATE(self)->NameType_class, \
+                                            argList); \
+        Py_DECREF(argList); \
+        return res; \
+    }
+
+static PyObject *
+createNameType(PyObject *self, gss_OID name_type)
+{
+    CHECK_AND_RETURN_NAME_TYPE(name_type, GSS_C_NT_HOSTBASED_SERVICE, 0);
+    CHECK_AND_RETURN_NAME_TYPE(name_type, GSS_KRB5_NT_PRINCIPAL_NAME, 1);
+    CHECK_AND_RETURN_NAME_TYPE(name_type, GSS_C_NT_USER_NAME, 2);
+    CHECK_AND_RETURN_NAME_TYPE(name_type, GSS_C_NT_ANONYMOUS, 3);
+    CHECK_AND_RETURN_NAME_TYPE(name_type, GSS_C_NT_MACHINE_UID_NAME, 4);
+    CHECK_AND_RETURN_NAME_TYPE(name_type, GSS_C_NT_STRING_UID_NAME, 5);
+    CHECK_AND_RETURN_NAME_TYPE(name_type, GSS_C_NT_EXPORT_NAME, 6);
+
+    /* if we haven't returned something else already... */
+    Py_RETURN_NONE;
+}
 
 #define GET_CAPSULE(type, obj) (type)PyCapsule_GetPointer(obj, NULL)
 #define GET_CAPSULE_DEREF(type, obj) *((type*)PyCapsule_GetPointer(obj, NULL))
+
+static PyObject *
+displayName(PyObject *self, PyObject *raw_name)
+{
+    gss_name_t name = GET_CAPSULE(gss_name_t, raw_name);
+
+    gss_buffer_desc name_buffer = GSS_C_EMPTY_BUFFER;
+    gss_OID name_type;
+
+    OM_uint32 maj_stat;
+    OM_uint32 min_stat;
+
+    Py_BEGIN_ALLOW_THREADS
+        maj_stat = gss_display_name(&min_stat, name, &name_buffer,
+                                    &name_type);
+    Py_END_ALLOW_THREADS
+
+    if (maj_stat == GSS_S_COMPLETE) {
+        PyObject *python_name_type = createNameType(self, name_type);
+        PyObject *res = Py_BuildValue(BYTE_TUPLE_STR("", "O"),
+                                      name_buffer.value,
+                                      name_buffer.length,
+                                      python_name_type);
+        Py_DECREF(python_name_type);
+        return res;
+    }
+    else {
+        raise_gss_error(self, maj_stat, min_stat);
+        return NULL;
+    }
+}
 
 static PyObject *
 releaseName(PyObject *self, PyObject *args)
@@ -131,9 +189,6 @@ releaseName(PyObject *self, PyObject *args)
        return NULL;
     }
 }
-
-#define COMPARE_OIDS(a,b) ( (a->length == b->length) && \
-                            !memcmp(a->elements, b->elements, a->length) )
 
 static PyObject *
 createMechType(PyObject *self, gss_OID mech_type)
@@ -890,6 +945,8 @@ unwrap(PyObject *self, PyObject *args)
 static PyMethodDef GSSAPIMethods[] = {
     {"importName", importName, METH_VARARGS,
      "Convert a string name and type into a GSSAPI name object"},
+    {"displayName", displayName, METH_O,
+     "Convert a GSSAPI name back into a string and a NameType"},
     {"indicateMechs", indicateMechs, METH_NOARGS,
      "List the mechanisms supported by the current implementation"},
     {"acquireCred", acquireCred, METH_VARARGS | METH_KEYWORDS,
@@ -947,6 +1004,13 @@ MOD_INIT(impl)
                 PyObject_GetAttr(types_module, mechtype_attr_name);
 
         Py_DECREF(mechtype_attr_name); /* we don't need it any more */
+
+        PyObject *nametype_attr_name = PyString_FromString("NameType");
+
+            GETSTATE(module)->NameType_class =
+                PyObject_GetAttr(types_module, nametype_attr_name);
+
+        Py_DECREF(nametype_attr_name); /* we don't need it any more */
 
     Py_DECREF(types_module); /* we don't need it any more */
 
