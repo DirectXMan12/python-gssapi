@@ -3,6 +3,7 @@ import setuptools
 from setuptools import setup
 from setuptools import Extension
 import sys
+import re
 
 get_output = None
 
@@ -51,6 +52,10 @@ ext_module_su = Extension(
     ]
 )
 
+long_desc = re.sub(r':(python|bash|code):', '',
+                   re.sub(r'\.\. code-block:: \w+', '::',
+                          open('README.txt').read()))
+
 setup(
     name='PyGSSAPI',
     version='1.0.0',
@@ -58,7 +63,7 @@ setup(
     author_email='sross@redhat.com',
     packages=['gssapi', 'gssapi.base', 'gssapi.tests'],
     description='Python GSSAPI Wrapper',
-    long_description=open('README.txt').read(),
+    long_description=long_desc,
     license='LICENSE.txt',
     url="https://github.com/directxman12/python-gssapi",
     classifiers=[
