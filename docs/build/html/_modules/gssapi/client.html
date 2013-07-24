@@ -1,0 +1,454 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gssapi.client &mdash; PyGSSAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="PyGSSAPI 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">PyGSSAPI 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gssapi.client</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">gssapi.base</span> <span class="kn">as</span> <span class="nn">gss</span>
+<span class="kn">import</span> <span class="nn">struct</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">gssapi.type_wrappers</span> <span class="kn">import</span> <span class="n">GSSName</span>
+
+<div class="viewcode-block" id="debug"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.debug">[docs]</a><span class="k">def</span> <span class="nf">debug</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;{0}: {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">v</span><span class="p">),</span> <span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="GSSClientError"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.GSSClientError">[docs]</a><span class="k">class</span> <span class="nc">GSSClientError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    GSS Client Error</span>
+
+<span class="sd">    This Exception represents an error which occured</span>
+<span class="sd">    when executing the GSS Client code (as opposed to</span>
+<span class="sd">    :class:`GSSError` s, which are errors which occured directly</span>
+<span class="sd">    in the GSSAPI C code).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="BasicGSSClient"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.BasicGSSClient">[docs]</a><span class="k">class</span> <span class="nc">BasicGSSClient</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Basic GSS Client</span>
+
+<span class="sd">    This class implements all functionality needed to initialize a basic</span>
+<span class="sd">    GSS connection and send/receive encrypted or signed messages.</span>
+
+<span class="sd">    .. warning::</span>
+<span class="sd">       </span>
+<span class="sd">       All methods in this class can potentially raise :class:`gssapi.base.GSSError`</span>
+
+<span class="sd">    .. attribute:: service_principal</span>
+<span class="sd">       </span>
+<span class="sd">       The service principal to which we are connecting (as a :class:`gssapi.type_wrappers.GSSName`)</span>
+
+<span class="sd">    .. attribute:: ctx</span>
+<span class="sd">       </span>
+<span class="sd">       Type: Capsule</span>
+
+<span class="sd">       The internal GSS context object</span>
+<span class="sd">    </span>
+<span class="sd">    .. attribute:: token</span>
+<span class="sd">       </span>
+<span class="sd">       Type: bytes</span>
+<span class="sd">       </span>
+<span class="sd">       The last returned token from one of the token-manipulation methods </span>
+<span class="sd">    </span>
+<span class="sd">    .. attribute:: ttl</span>
+<span class="sd">       </span>
+<span class="sd">       Type: int &gt;= 0</span>
+
+<span class="sd">       The desired time-to-live for the GSS context object</span>
+
+<span class="sd">    .. attribute:: last_ttl</span>
+<span class="sd">        </span>
+<span class="sd">       Type: int &gt; 0</span>
+
+<span class="sd">       The actual amount of time for which the current GSS context object will be valid</span>
+
+<span class="sd">    .. attribute:: qop</span>
+<span class="sd">        </span>
+<span class="sd">       Type: int &gt; 0 or None</span>
+
+<span class="sd">       The current Quality of Protection being used in the encryption/decryption process</span>
+<span class="sd">       (set this to the desired QoP, or None for default, to attempt to use that QoP)</span>
+<span class="sd">    </span>
+<span class="sd">    .. attribute:: services</span>
+
+<span class="sd">       Type: [:class:`gssapi.base.RequirementFlag`]</span>
+
+<span class="sd">       The flags to use when creating the GSS context</span>
+
+<span class="sd">    .. attribute:: channel_bindings</span>
+
+<span class="sd">       Type: TBD or None</span>
+
+<span class="sd">       .. warning::</span>
+<span class="sd">          </span>
+<span class="sd">          Not Currently Implemented</span>
+<span class="sd">    </span>
+<span class="sd">    .. attribute:: mech_type</span>
+<span class="sd">        </span>
+<span class="sd">       Type: Capsule or None</span>
+
+<span class="sd">       Represents the desired mechanism type to be used (None uses the default type).</span>
+<span class="sd">       </span>
+<span class="sd">       .. seealso::</span>
+
+<span class="sd">          Function :func:`resolveMechType`</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">principal</span><span class="p">,</span> <span class="n">dbg</span><span class="o">=</span><span class="n">debug</span><span class="p">,</span> <span class="n">security_type</span><span class="o">=</span><span class="s">&#39;encrypted&#39;</span><span class="p">,</span> <span class="n">max_msg_size</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new BasicGSSClient</span>
+
+<span class="sd">        :param str principal: the service principal to which to connect (automatically converted to a :class:`gssapi.type_wrappers.GSSName`</span>
+<span class="sd">        :param dbg: a method for printing debug messages (not currently used)</span>
+<span class="sd">        :type dbg: function(title, message)</span>
+<span class="sd">        :param security_type: the level of security to use</span>
+<span class="sd">        :type security_type: str containing enc(crypted)/conf(idential), integ(rity) or any, or just None</span>
+<span class="sd">        :param max_msg_size: the maximum message size for encryption/decryption</span>
+<span class="sd">        :type max_msg_zie: int &gt; 0 or None (for default)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">dbg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">service_principal</span> <span class="o">=</span> <span class="n">GSSName</span><span class="p">(</span><span class="n">principal</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ttl</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_ttl</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qop</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_bindings</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mech_type</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">services</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="n">security_type</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;integ&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">integrity</span>
+        <span class="k">elif</span> <span class="n">security_type</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;conf&#39;</span> <span class="ow">or</span> <span class="n">security_type</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;enc&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">confidentiality</span>
+        <span class="k">elif</span> <span class="n">security_type</span> <span class="o">==</span> <span class="s">&#39;any&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="BasicGSSClient.resolveMechType"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.BasicGSSClient.resolveMechType">[docs]</a>    <span class="k">def</span> <span class="nf">resolveMechType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the current mechanims type</span>
+
+<span class="sd">        This method converts a :class:`gssapi.base.MechanismType` into</span>
+<span class="sd">        a capsule object usable by internal methods, and then sets</span>
+<span class="sd">        :attr:`mech_type` to the resulting capsule</span>
+
+<span class="sd">        :param mt: the desired mechanism type</span>
+<span class="sd">        :type mt: :class:`gssapi.base.MechanismType`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mech_type</span> <span class="o">=</span> <span class="n">gss</span><span class="o">.</span><span class="n">getMechanismType</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BasicGSSClient.createDefaultToken"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.BasicGSSClient.createDefaultToken">[docs]</a>    <span class="k">def</span> <span class="nf">createDefaultToken</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes a default token and security context</span>
+
+<span class="sd">        This method gets and returns a default token, and</span>
+<span class="sd">        initializes the corresponding security context</span>
+
+<span class="sd">        :rtype: bytes</span>
+<span class="sd">        :returns: the token created in the process of initializing the security context</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_ttl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">gss</span><span class="o">.</span><span class="n">initSecContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">service_principal</span><span class="o">.</span><span class="n">capsule</span><span class="p">,</span>
+                                                                          <span class="n">services</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">services</span><span class="p">,</span>
+                                                                          <span class="n">channel_bindings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_bindings</span><span class="p">,</span>
+                                                                          <span class="n">mech_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mech_type</span><span class="p">,</span>
+                                                                          <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ttl</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span>
+</div>
+<div class="viewcode-block" id="BasicGSSClient.processServerToken"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.BasicGSSClient.processServerToken">[docs]</a>    <span class="k">def</span> <span class="nf">processServerToken</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_tok</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Processes a server token, and updates the security context</span>
+
+<span class="sd">        This method processes a server token, updates the internal</span>
+<span class="sd">        security context, and returns the new resulting token.</span>
+
+<span class="sd">        :param bytes server_tok: the token sent from the server</span>
+<span class="sd">        :rtype: bytes</span>
+<span class="sd">        :returns: the token resulting from updating the security context</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_ttl</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">gss</span><span class="o">.</span><span class="n">initSecContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">service_principal</span><span class="o">.</span><span class="n">capsule</span><span class="p">,</span>
+                                                                          <span class="n">context</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span>
+                                                                          <span class="n">input_token</span><span class="o">=</span><span class="n">server_tok</span><span class="p">,</span>
+                                                                          <span class="n">services</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">services</span><span class="p">,</span>
+                                                                          <span class="n">channel_bindings</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_bindings</span><span class="p">,</span>
+                                                                          <span class="n">mech_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mech_type</span><span class="p">,</span>
+                                                                          <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ttl</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">token</span>
+    </div>
+<div class="viewcode-block" id="BasicGSSClient.encrypt"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.BasicGSSClient.encrypt">[docs]</a>    <span class="k">def</span> <span class="nf">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Encrypts a message</span>
+
+<span class="sd">        This method encrypts a message according to the current</span>
+<span class="sd">        QoP (:attr:`qop`) and security level</span>
+
+<span class="sd">        :param str msg: the message to be encrypted</span>
+<span class="sd">        :rtype: bytes</span>
+<span class="sd">        :returns: the encrypted form of the message</span>
+<span class="sd">        :except GSSClientError: if the requested security level could not be used</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">integrity</span><span class="p">:</span>
+            <span class="n">gss</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qop</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">confidentiality</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">,</span> <span class="n">used</span> <span class="o">=</span> <span class="n">gss</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qop</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">used</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GSSClientError</span><span class="p">(</span><span class="s">&#39;User requested encryption, but it was not used!&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">res</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">msg</span>
+    </div>
+<div class="viewcode-block" id="BasicGSSClient.decrypt"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.BasicGSSClient.decrypt">[docs]</a>    <span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decrypts a message</span>
+
+<span class="sd">        This method decrypts a message encrypted by the server.</span>
+
+<span class="sd">        :param bytes msg: the message to be decrypted</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        :returns: the decrypted message</span>
+<span class="sd">        :except GSSClientError: if encryption was requested but not used, or if the QoP failed to meet our standards</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">res</span><span class="p">,</span> <span class="n">used</span><span class="p">,</span> <span class="n">qop</span> <span class="o">=</span> <span class="n">gss</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">used</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">confidentiality</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GSSClientError</span><span class="p">(</span><span class="s">&#39;User requested encryption, but the server sent an unencrypted message!&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">qop</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">qop</span> <span class="o">=</span> <span class="n">qop</span>
+            <span class="k">elif</span> <span class="n">qop</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">qop</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">GSSClientError</span><span class="p">(</span><span class="s">&#39;Server used a lower quality of protection than we expected!&#39;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">res</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">msg</span>
+</div>
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">gss</span><span class="o">.</span><span class="n">deleteSecContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SASLGSSClientError"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.SASLGSSClientError">[docs]</a><span class="k">class</span> <span class="nc">SASLGSSClientError</span><span class="p">(</span><span class="n">GSSClientError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SASL GSS Client Error</span>
+
+<span class="sd">    This Exception represents an error which occured</span>
+<span class="sd">    when executing the SASL GSS Client helper code (as opposed to</span>
+<span class="sd">    :class:`GSSError`s, which are errors which occured directly</span>
+<span class="sd">    in the GSSAPI C code).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="BasicSASLGSSClient"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.BasicSASLGSSClient">[docs]</a><span class="k">class</span> <span class="nc">BasicSASLGSSClient</span><span class="p">(</span><span class="n">BasicGSSClient</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A helper for using the SASL GSSAPI mechanism</span>
+
+<span class="sd">    This class contains helper code to support implementing</span>
+<span class="sd">    the SASL GSSAPI mechanism using PyGSSAPI.</span>
+
+<span class="sd">    .. attribute:: user_principal</span>
+<span class="sd">       </span>
+<span class="sd">       The username to use in the authentication process</span>
+
+<span class="sd">       .. warning::</span>
+<span class="sd">          </span>
+<span class="sd">          Unlike :attr:`service_principal`, this is just a string, not a :class:`gssapi.type_wrappers.GSSName`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">service_principal</span><span class="p">,</span> <span class="n">max_msg_size</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new BasicSASLGSSClient</span>
+
+<span class="sd">        This method creates a new BasicSASLGSSClient with the given username.</span>
+<span class="sd">        All other parameters are used as in :class:`BasicGSSClient`.  All relevant</span>
+<span class="sd">        attributes are set according to the SASL GSSAPI RFC (http://tools.ietf.org/html/rfc4752).</span>
+
+<span class="sd">        :param str username: the user principal with which to authenticate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_principal</span> <span class="o">=</span> <span class="n">username</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_msg_size</span> <span class="o">=</span> <span class="n">max_msg_size</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BasicSASLGSSClient</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">service_principal</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_bindings</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resolveMechType</span><span class="p">(</span><span class="n">gss</span><span class="o">.</span><span class="n">MechType</span><span class="o">.</span><span class="n">kerberos</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">services</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">services</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="o">==</span> <span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">confidentiality</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">services</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">security_type</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">services</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">integrity</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">services</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">mutual_authentication</span><span class="p">,</span>
+                                  <span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">out_of_sequence_detection</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">INV_SEC_LAYER_MASKS</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SEC_LAYER_MASKS</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    
+<div class="viewcode-block" id="BasicSASLGSSClient.step1"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.BasicSASLGSSClient.step1">[docs]</a>    <span class="k">def</span> <span class="nf">step1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a default token</span>
+
+<span class="sd">        This method is step 1 in the SASL process, and</span>
+<span class="sd">        creates a default token</span>
+
+<span class="sd">        :rtype: bytes</span>
+<span class="sd">        :returns: a default token to send to the server</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">createDefaultToken</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="BasicSASLGSSClient.step2"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.BasicSASLGSSClient.step2">[docs]</a>    <span class="k">def</span> <span class="nf">step2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_tok</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Processes a server token</span>
+
+<span class="sd">        This method is step 2 in the SASL process, and</span>
+<span class="sd">        processes a server token</span>
+
+<span class="sd">        :param bytes server_tok: the token returned from the server</span>
+<span class="sd">        :rtype: bytes</span>
+<span class="sd">        :returns: a token or empty string to be sent to the server</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">processServerToken</span><span class="p">(</span><span class="n">server_tok</span><span class="p">)</span> 
+</div>
+    <span class="n">SEC_LAYER_MASKS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">0</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">integrity</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">gss</span><span class="o">.</span><span class="n">RequirementFlag</span><span class="o">.</span><span class="n">confidentiality</span><span class="p">:</span> <span class="mi">4</span>
+    <span class="p">}</span>
+
+    <span class="n">INV_SEC_LAYER_MASKS</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="BasicSASLGSSClient.step3"><a class="viewcode-back" href="../../gssapi.html#gssapi.client.BasicSASLGSSClient.step3">[docs]</a>    <span class="k">def</span> <span class="nf">step3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tok</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deals with SSF</span>
+
+<span class="sd">        This method deals with negotiating SSF (the security level)</span>
+<span class="sd">        and max message size, setting the max message size appropriately</span>
+
+<span class="sd">        :param bytes tok: the wrapped message sent from the server</span>
+<span class="sd">        :rtype: bytes</span>
+<span class="sd">        :returns: a wrapped message to be sent to the server declaring our security level and max message size</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">unwrapped_tok</span> <span class="o">=</span> <span class="n">gss</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="n">msg</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># we don&#39;t care out security for this</span>
+        <span class="n">sec_layers_supported_raw</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">unwrapped_tok</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">max_server_msg_size_raw</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\x00</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">unwrapped_tok</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">max_server_msg_size</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;!L&#39;</span><span class="p">,</span> <span class="n">max_server_msg_size_raw</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_msg_size</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_msg_size</span> <span class="o">&gt;</span> <span class="n">max_server_msg_size</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_msg_size</span> <span class="o">=</span> <span class="n">max_server_msg_size</span>
+            
+        <span class="n">sec_layers_supported</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">mask</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SEC_LAYER_MASKS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">sec_layers_supported_raw</span> <span class="o">&amp;</span> <span class="n">mask</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sec_layers_supported</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">sec_layer_choice</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="c"># None means any</span>
+            <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SEC_LAYER_MASKS</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">mask</span> <span class="o">&amp;</span> <span class="n">sec_layers_supported_raw</span> <span class="o">&gt;</span> <span class="n">sec_layer_choice</span><span class="p">:</span>
+                    <span class="n">sec_layer_choice</span> <span class="o">=</span> <span class="n">mask</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">security_type</span> <span class="ow">in</span> <span class="n">sec_layers_supported</span><span class="p">:</span>
+            <span class="n">sec_layer_choice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SEC_LAYER_MASKS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">security_type</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SASLGSSClientError</span><span class="p">(</span><span class="s">&#39;Server is unable to accomodate our security level!&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">security_layer</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">security_layer</span> <span class="o">=</span> <span class="n">INV_SEC_LAYER_MASKS</span><span class="p">[</span><span class="n">sec_layer_choice</span><span class="p">]</span>
+            
+        
+        <span class="n">resp</span> <span class="o">=</span> <span class="nb">chr</span><span class="p">(</span><span class="n">sec_layer_choice</span><span class="p">)</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;!L&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_msg_size</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_principal</span>
+        <span class="k">return</span> <span class="n">gss</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="p">,</span> <span class="n">resp</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qop</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># again, we don&#39;t care about our selected security type for this one</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">PyGSSAPI 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Solly Ross.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

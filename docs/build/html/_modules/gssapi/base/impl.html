@@ -1,0 +1,227 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gssapi.base.impl &mdash; PyGSSAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="PyGSSAPI 1.0.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyGSSAPI 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gssapi.base.impl</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">gssapi.base.types</span> <span class="kn">import</span> <span class="n">NameType</span>
+
+<div class="viewcode-block" id="importName"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.impl.importName">[docs]</a><span class="k">def</span> <span class="nf">importName</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name_type</span><span class="o">=</span><span class="n">NameType</span><span class="o">.</span><span class="n">hostbased_service</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets a GSSAPI Name</span>
+
+<span class="sd">    This method converts a string name and type into a &#39;name&#39;</span>
+<span class="sd">    string usable in future calls to GSSAPI.</span>
+
+<span class="sd">    NOTE: This name needs to have its name released when finished</span>
+
+<span class="sd">    :param str name: the plain &#39;name&#39; to obtain</span>
+<span class="sd">    :param name_type: the type of the name we are passing in</span>
+<span class="sd">    :type name_type: :class:`NameType`</span>
+<span class="sd">    :rtype: bytes</span>
+<span class="sd">    :returns: the GSSAPI name string for use in other GSSAPI methods</span>
+<span class="sd">    :except GSSError: </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="releaseName"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.impl.releaseName">[docs]</a><span class="k">def</span> <span class="nf">releaseName</span><span class="p">(</span><span class="n">name_obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Releases a GSSAPI Name</span>
+
+<span class="sd">    This method releases a GSSAPI name that was allocated with importName</span>
+
+<span class="sd">    :param name_obj: the name object to be released</span>
+<span class="sd">    :returns: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="deleteSecContext"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.impl.deleteSecContext">[docs]</a><span class="k">def</span> <span class="nf">deleteSecContext</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">output_needed</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Releases a security context</span>
+
+<span class="sd">    This method releases a security context, potentially providing an</span>
+<span class="sd">    output buffer as the result</span>
+
+<span class="sd">    :param context: the context to be released</span>
+<span class="sd">    :param bool output_needed: is an output_buffer desired?</span>
+<span class="sd">    :rtype: bytes or None</span>
+<span class="sd">    :returns: an output token, if requested (otherwise None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<span class="c"># TODO(sross): implement acquireCred to use with cred</span>
+<span class="c"># TODO(sross): add support for non-default mechanisms</span>
+<span class="c"># TODO(sross): add support for channel bindings</span></div>
+<div class="viewcode-block" id="initSecContext"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.impl.initSecContext">[docs]</a><span class="k">def</span> <span class="nf">initSecContext</span><span class="p">(</span><span class="n">target_name</span><span class="p">,</span> <span class="n">cred</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mech_type</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">services</span><span class="o">=</span><span class="p">[],</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">channel_bindings</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">input_token</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initializes a GSS Security Context</span>
+
+<span class="sd">    This method initializes a GSSAPI security context</span>
+<span class="sd">    with the given parameters.</span>
+
+<span class="sd">    :param target_name: the name of the target (commonly the server name, retrieved using importName)</span>
+<span class="sd">    :param cred: The handle for credentials claimed (returned from acquireCred), or None to use the default initiator principal </span>
+<span class="sd">    :param context: The current context, or None if this is the first call</span>
+<span class="sd">    :param mech_type: the mechanism type (None for default, otherwise a capsule from :func:`getMechanismType`)</span>
+<span class="sd">    :param services: the requested services</span>
+<span class="sd">    :type services: [:class:`RequirementFlag`]</span>
+<span class="sd">    :param int time: the requested TTL for this context (0 uses the default TTL)</span>
+<span class="sd">    :param channel_bindings: the requested input channel bindings (currently only None is supported)</span>
+<span class="sd">    :param bytes input_token: the input token (use None for the first call)</span>
+<span class="sd">    :returns: a tuple containing the (potentially modified) context, the actual mechanism type used, the output token, the actual services provided, the actual TTL for this context, and whether or not a continue is needed (i.e. (context, MechType (NCI), [RequirementFlag] (NCI), bytes, TTL, continue_needed))</span>
+<span class="sd">    :except GSSError:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="getMechanismType"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.impl.getMechanismType">[docs]</a><span class="k">def</span> <span class="nf">getMechanismType</span><span class="p">(</span><span class="n">mech_type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a value from the MechType enum into a gss_OID</span>
+
+<span class="sd">    This method converts a value from the MechType enum into a gss_OID,</span>
+<span class="sd">    which can be used in GSSAPI methods such as initSecContext</span>
+
+<span class="sd">    :param MechType mech_type: the mechanism type</span>
+<span class="sd">    :returns: a gss_OID capsule representing the selected mechanism type</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="wrap"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.impl.wrap">[docs]</a><span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">confidential</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">qop</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wraps a message</span>
+
+<span class="sd">    This method wraps a message with a MIC and potentially encrypts the message</span>
+<span class="sd">    using the requested QoP</span>
+
+<span class="sd">    :param bytes context: the context of the current connection</span>
+<span class="sd">    :param message: the message to encrypt</span>
+<span class="sd">    :type message: (unicode) str or bytes</span>
+<span class="sd">    :param bool confidential: whether or not to use confidentiality</span>
+<span class="sd">    :param qop: specifies the quality of protection required (use None for the default)</span>
+<span class="sd">    :type qop: int or None</span>
+<span class="sd">    :rtype: (bytes, bool)</span>
+<span class="sd">    :returns: a tuple containing the output message and whether confidentiality was used</span>
+<span class="sd">    :except GSSError:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="unwrap"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.impl.unwrap">[docs]</a><span class="k">def</span> <span class="nf">unwrap</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Unwraps a wrapped message</span>
+
+<span class="sd">    This method unwraps a message that was previously wrapped by the other party</span>
+
+<span class="sd">    :param bytes context: the context of the current connection</span>
+<span class="sd">    :param bytes message: the input message</span>
+<span class="sd">    :rtype: (bytes, bool, int)</span>
+<span class="sd">    :returns: a tuple containing the decrypted message, whether confidentiality was used, and the QoP</span>
+<span class="sd">    :except GSSError:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<span class="c"># TODO(sross): implement inquireContext</span>
+<span class="c"># TODO(sross): implement inquireCred (w/ support for by_mech)</span>
+<span class="c"># TODO(sross): implement getDisplayName</span>
+
+<span class="c"># TODO(sross): SERVER SIDE: implement acceptSecContext</span>
+
+<span class="c"># TODO(sross): implement importCred and exportCred</span>
+
+<span class="c"># Other Methods To Wrap (eventually):</span>
+<span class="c"># * add_cred</span>
+<span class="c"># * release_cred</span>
+<span class="c"># * process_context_token</span>
+<span class="c"># * context_time</span>
+<span class="c"># * wrap_size_limit</span>
+<span class="c"># * import/export _sec_context</span>
+<span class="c"># * get_mic</span>
+<span class="c"># * verify_mis</span>
+<span class="c"># * compare_name</span>
+<span class="c"># * inquire_names_for_mech / inquire_mechs_for_name</span>
+<span class="c"># * cannonicalize_name</span>
+<span class="c"># * export_name</span>
+<span class="c"># * duplicate_name</span>
+<span class="c"># * add_oid_set_member</span>
+<span class="c"># * inidcate_mechs</span>
+<span class="c"># * release_oid_set</span>
+<span class="c"># * release_buffer</span>
+<span class="c"># * create_empty_oid_set</span>
+<span class="c"># * test_oid_set_member</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyGSSAPI 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Solly Ross.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

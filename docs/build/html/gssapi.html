@@ -1,0 +1,489 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gssapi Package &mdash; PyGSSAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyGSSAPI 1.0.0 documentation" href="index.html" />
+    <link rel="next" title="base Package" href="gssapi.base.html" />
+    <link rel="prev" title="Welcome to PyGSSAPI’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gssapi.base.html" title="base Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to PyGSSAPI’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyGSSAPI 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="gssapi-package">
+<h1>gssapi Package<a class="headerlink" href="#gssapi-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-gssapi.client">
+<span id="client-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">client</span></tt> Module<a class="headerlink" href="#module-gssapi.client" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gssapi.client.BasicGSSClient">
+<em class="property">class </em><tt class="descclassname">gssapi.client.</tt><tt class="descname">BasicGSSClient</tt><big>(</big><em>target</em>, <em>security_type='encrypted'</em>, <em>max_msg_size=None</em><big>)</big><a class="reference internal" href="_modules/gssapi/client.html#BasicGSSClient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.BasicGSSClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Basic GSS Client</p>
+<p>This class implements all functionality needed to initialize a basic
+GSS connection and send/receive encrypted or signed messages.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>target</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; <p>the service name to which to connect
+(automatically converted to a</p>
+<blockquote>
+<div><a class="reference internal" href="#gssapi.type_wrappers.GSSName" title="gssapi.type_wrappers.GSSName"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.type_wrappers.GSSName</span></tt></a>),</div></blockquote>
+<p>should be a host-based service name</p>
+</li>
+<li><strong>dbg</strong> (<em>function(title, message)</em>) &#8211; a method for printing debug messages (not currently used)</li>
+<li><strong>security_type</strong> (<em>str containing enc(crypted)/conf(idential),
+integ(rity) or any, or just None</em>) &#8211; the level of security to use</li>
+<li><strong>max_msg_size</strong> (<em>int &gt; 0 or None (for default)</em>) &#8211; the maximum message size for encryption/decryption</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">All methods in this class can potentially raise
+<a class="reference internal" href="gssapi.base.html#gssapi.base.types.GSSError" title="gssapi.base.types.GSSError"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.base.types.GSSError</span></tt></a></p>
+</div>
+<dl class="attribute">
+<dt id="gssapi.client.BasicGSSClient.service_name">
+<tt class="descname">service_name</tt><a class="headerlink" href="#gssapi.client.BasicGSSClient.service_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The service name to which we are connecting
+(as a <a class="reference internal" href="#gssapi.type_wrappers.GSSName" title="gssapi.type_wrappers.GSSName"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.type_wrappers.GSSName</span></tt></a>)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.client.BasicGSSClient.ctx">
+<tt class="descname">ctx</tt><a class="headerlink" href="#gssapi.client.BasicGSSClient.ctx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type: Capsule</p>
+<p>The internal GSS context object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.client.BasicGSSClient.token">
+<tt class="descname">token</tt><a class="headerlink" href="#gssapi.client.BasicGSSClient.token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type: bytes</p>
+<p>The last returned token from one of the token-manipulation methods</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.client.BasicGSSClient.ttl">
+<tt class="descname">ttl</tt><a class="headerlink" href="#gssapi.client.BasicGSSClient.ttl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type: int &gt;= 0</p>
+<p>The desired time-to-live for the GSS context object</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.client.BasicGSSClient.last_ttl">
+<tt class="descname">last_ttl</tt><a class="headerlink" href="#gssapi.client.BasicGSSClient.last_ttl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type: int &gt; 0</p>
+<p>The actual amount of time for which the current
+GSS context object will be valid</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.client.BasicGSSClient.flags">
+<tt class="descname">flags</tt><a class="headerlink" href="#gssapi.client.BasicGSSClient.flags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type: [<a class="reference internal" href="gssapi.base.html#gssapi.base.types.RequirementFlag" title="gssapi.base.types.RequirementFlag"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.base.types.RequirementFlag</span></tt></a>]</p>
+<p>The flags to use when creating the GSS context</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.client.BasicGSSClient.channel_bindings">
+<tt class="descname">channel_bindings</tt><a class="headerlink" href="#gssapi.client.BasicGSSClient.channel_bindings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type: TBD or None</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Not Currently Implemented</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.client.BasicGSSClient.mech_type">
+<tt class="descname">mech_type</tt><a class="headerlink" href="#gssapi.client.BasicGSSClient.mech_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type: Capsule or None</p>
+<p>Represents the desired mechanism type to be used
+(None uses the default type).</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">Function <a class="reference internal" href="#gssapi.client.BasicGSSClient.resolveMechType" title="gssapi.client.BasicGSSClient.resolveMechType"><tt class="xref py py-func docutils literal"><span class="pre">resolveMechType()</span></tt></a></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="gssapi.client.BasicGSSClient.decrypt">
+<tt class="descname">decrypt</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="_modules/gssapi/client.html#BasicGSSClient.decrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.BasicGSSClient.decrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrypts a message</p>
+<p>This method decrypts a message encrypted by the server.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<em>bytes</em>) &#8211; the message to be decrypted</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the decrypted message</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSClientError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">if encryption was requested but not used,
+or if the QoP failed to meet our standards</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gssapi.client.BasicGSSClient.encrypt">
+<tt class="descname">encrypt</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="_modules/gssapi/client.html#BasicGSSClient.encrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.BasicGSSClient.encrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypts a message</p>
+<p>This method encrypts a message according to the current
+security level</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the message to be encrypted</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bytes</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the encrypted form of the message</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSClientError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">if the requested security level
+could not be used</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gssapi.client.BasicGSSClient.resolveMechType">
+<tt class="descname">resolveMechType</tt><big>(</big><em>mt</em><big>)</big><a class="reference internal" href="_modules/gssapi/client.html#BasicGSSClient.resolveMechType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.BasicGSSClient.resolveMechType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the current mechanims type</p>
+<p>This method converts a <tt class="xref py py-class docutils literal"><span class="pre">gssapi.base.types.MechanismType</span></tt> into
+a capsule object usable by internal methods, and then sets
+<a class="reference internal" href="#gssapi.client.BasicGSSClient.mech_type" title="gssapi.client.BasicGSSClient.mech_type"><tt class="xref py py-attr docutils literal"><span class="pre">mech_type</span></tt></a> to the resulting capsule</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mt</strong> (<tt class="xref py py-class docutils literal"><span class="pre">gssapi.base.types.MechanismType</span></tt>) &#8211; the desired mechanism type</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gssapi.client.BasicGSSClient.setupBaseSecurityContext">
+<tt class="descname">setupBaseSecurityContext</tt><big>(</big><big>)</big><a class="headerlink" href="#gssapi.client.BasicGSSClient.setupBaseSecurityContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a default token and security context</p>
+<p>This method gets and returns a default token, and
+initializes the corresponding security context</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bytes</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the token created in the process of
+initializing the security context</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gssapi.client.BasicGSSClient.updateSecurityContext">
+<tt class="descname">updateSecurityContext</tt><big>(</big><em>server_tok</em><big>)</big><a class="headerlink" href="#gssapi.client.BasicGSSClient.updateSecurityContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes a server token, and updates the security context</p>
+<p>This method processes a server token, updates the internal
+security context, and returns the new resulting token.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>server_tok</strong> (<em>bytes</em>) &#8211; the token sent from the server</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bytes</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the token resulting from updating the security context</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gssapi.client.BasicSASLGSSClient">
+<em class="property">class </em><tt class="descclassname">gssapi.client.</tt><tt class="descname">BasicSASLGSSClient</tt><big>(</big><em>username</em>, <em>target</em>, <em>max_msg_size=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/gssapi/client.html#BasicSASLGSSClient"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.BasicSASLGSSClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gssapi.client.BasicGSSClient" title="gssapi.client.BasicGSSClient"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.client.BasicGSSClient</span></tt></a></p>
+<p>A helper for using the SASL GSSAPI mechanism</p>
+<p>This class contains helper code to support implementing
+the SASL GSSAPI mechanism using PyGSSAPI.</p>
+<p>All parameters besides username are used as in <a class="reference internal" href="#gssapi.client.BasicGSSClient" title="gssapi.client.BasicGSSClient"><tt class="xref py py-class docutils literal"><span class="pre">BasicGSSClient</span></tt></a>.
+All relevant attributes are set according to the SASL GSSAPI RFC
+(<a class="reference external" href="http://tools.ietf.org/html/rfc4752">http://tools.ietf.org/html/rfc4752</a>).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>username</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the user name with which to authenticate</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="gssapi.client.BasicSASLGSSClient.user_name">
+<tt class="descname">user_name</tt><a class="headerlink" href="#gssapi.client.BasicSASLGSSClient.user_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The username to use in the authentication process</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Unlike <tt class="xref py py-attr docutils literal"><span class="pre">service_name</span></tt>, this is just a string,
+not a <a class="reference internal" href="#gssapi.type_wrappers.GSSName" title="gssapi.type_wrappers.GSSName"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.type_wrappers.GSSName</span></tt></a></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.client.BasicSASLGSSClient.INV_SEC_LAYER_MASKS">
+<tt class="descname">INV_SEC_LAYER_MASKS</tt><em class="property"> = None</em><a class="headerlink" href="#gssapi.client.BasicSASLGSSClient.INV_SEC_LAYER_MASKS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.client.BasicSASLGSSClient.SEC_LAYER_MASKS">
+<tt class="descname">SEC_LAYER_MASKS</tt><em class="property"> = {0: 1, 4: 4, 5: 2}</em><a class="headerlink" href="#gssapi.client.BasicSASLGSSClient.SEC_LAYER_MASKS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="gssapi.client.BasicSASLGSSClient.step1">
+<tt class="descname">step1</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/gssapi/client.html#BasicSASLGSSClient.step1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.BasicSASLGSSClient.step1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a default token</p>
+<p>This method is step 1 in the SASL process, and
+creates a default token</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bytes</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a default token to send to the server</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gssapi.client.BasicSASLGSSClient.step2">
+<tt class="descname">step2</tt><big>(</big><em>server_tok</em><big>)</big><a class="reference internal" href="_modules/gssapi/client.html#BasicSASLGSSClient.step2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.BasicSASLGSSClient.step2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes a server token</p>
+<p>This method is step 2 in the SASL process, and
+processes a server token</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>server_tok</strong> (<em>bytes</em>) &#8211; the token returned from the server</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bytes</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a token or empty string to be sent to the server</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gssapi.client.BasicSASLGSSClient.step3">
+<tt class="descname">step3</tt><big>(</big><em>tok</em><big>)</big><a class="reference internal" href="_modules/gssapi/client.html#BasicSASLGSSClient.step3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.BasicSASLGSSClient.step3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deals with SSF</p>
+<p>This method deals with negotiating SSF (the security level)
+and max message size, setting the max message size appropriately</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tok</strong> (<em>bytes</em>) &#8211; the wrapped message sent from the server</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bytes</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a wrapped message to be sent to the server declaring
+our security level and max message size</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="gssapi.client.GSSClientError">
+<em class="property">exception </em><tt class="descclassname">gssapi.client.</tt><tt class="descname">GSSClientError</tt><a class="reference internal" href="_modules/gssapi/client.html#GSSClientError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.GSSClientError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>GSS Client Error</p>
+<p>This Exception represents an error which occured
+when executing the GSS Client code (as opposed to
+<a class="reference internal" href="gssapi.base.html#gssapi.base.types.GSSError" title="gssapi.base.types.GSSError"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.base.types.GSSError</span></tt></a>, which are errors
+which occured directly in the GSSAPI C code).</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="gssapi.client.SASLGSSClientError">
+<em class="property">exception </em><tt class="descclassname">gssapi.client.</tt><tt class="descname">SASLGSSClientError</tt><a class="reference internal" href="_modules/gssapi/client.html#SASLGSSClientError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.SASLGSSClientError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#gssapi.client.GSSClientError" title="gssapi.client.GSSClientError"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.client.GSSClientError</span></tt></a></p>
+<p>SASL GSS Client Error</p>
+<p>This Exception represents an error which occured
+when executing the SASL GSS Client helper code (as opposed to
+<a class="reference internal" href="gssapi.base.html#gssapi.base.types.GSSError" title="gssapi.base.types.GSSError"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.base.types.GSSError</span></tt></a>, which are errors which
+occured directly in the GSSAPI C code).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.client.debug">
+<tt class="descclassname">gssapi.client.</tt><tt class="descname">debug</tt><big>(</big><em>p</em>, <em>v</em><big>)</big><a class="reference internal" href="_modules/gssapi/client.html#debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.client.debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-gssapi.type_wrappers">
+<span id="type-wrappers-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">type_wrappers</span></tt> Module<a class="headerlink" href="#module-gssapi.type_wrappers" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="gssapi.type_wrappers.GSSName">
+<em class="property">class </em><tt class="descclassname">gssapi.type_wrappers.</tt><tt class="descname">GSSName</tt><big>(</big><em>name</em>, <em>name_type=&lt;EnumValue: NameType.hostbased_service [value=0]&gt;</em>, <em>create_cap=True</em><big>)</big><a class="reference internal" href="_modules/gssapi/type_wrappers.html#GSSName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.type_wrappers.GSSName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A GSS Name Object</p>
+<p>This class represents a GSS name object, conviniently
+wrapping the underlying Capsule object and automatically
+freeing the name upon the object&#8217;s destruction.  Also provides
+good str and repr values.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gssapi.base.html">base Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gssapi.base.html#id1"><tt class="docutils literal"><span class="pre">base</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gssapi.base.html#module-gssapi.base.ctypes"><tt class="docutils literal"><span class="pre">ctypes</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gssapi.base.html#module-gssapi.base.impl"><tt class="docutils literal"><span class="pre">impl</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gssapi.base.html#module-gssapi.base.status_utils"><tt class="docutils literal"><span class="pre">status_utils</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gssapi.base.html#module-gssapi.base.types"><tt class="docutils literal"><span class="pre">types</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">gssapi Package</a><ul>
+<li><a class="reference internal" href="#module-gssapi.client"><tt class="docutils literal"><span class="pre">client</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-gssapi.type_wrappers"><tt class="docutils literal"><span class="pre">type_wrappers</span></tt> Module</a></li>
+<li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to PyGSSAPI&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="gssapi.base.html"
+                        title="next chapter">base Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/gssapi.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gssapi.base.html" title="base Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to PyGSSAPI’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">PyGSSAPI 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Solly Ross.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

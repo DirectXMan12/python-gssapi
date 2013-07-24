@@ -3,7 +3,7 @@
 *.egg
 *~
 *.pyc
-build
+/build/
 *.swp
 *.swo
 *.so

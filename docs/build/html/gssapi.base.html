@@ -1,0 +1,920 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>base Package &mdash; PyGSSAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyGSSAPI 1.0.0 documentation" href="index.html" />
+    <link rel="prev" title="base Package" href="" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="#" title="base Package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyGSSAPI 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="base-package">
+<h1>base Package<a class="headerlink" href="#base-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">base</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-gssapi.base"></span></div>
+<div class="section" id="module-gssapi.base.ctypes">
+<span id="ctypes-module"></span><h2><a class="reference external" href="http://docs.python.org/library/ctypes.html#ctypes" title="(in Python v2.7)"><tt class="xref py py-mod docutils literal"><span class="pre">ctypes</span></tt></a> Module<a class="headerlink" href="#module-gssapi.base.ctypes" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-gssapi.base.impl">
+<span id="impl-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">impl</span></tt> Module<a class="headerlink" href="#module-gssapi.base.impl" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="gssapi.base.impl.acceptSecContext">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">acceptSecContext</tt><big>(</big><em>input_token</em>, <em>acceptor_cred=None</em>, <em>ctx=None</em>, <em>channel_bindings=None</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.acceptSecContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accepts a GSS Security Context</p>
+<p>(Server)
+This method accepts a GSSAPI security context
+based on the given parameters, including the token
+sent by the client returned from <a class="reference internal" href="#gssapi.base.impl.initSecContext" title="gssapi.base.impl.initSecContext"><tt class="xref py py-func docutils literal"><span class="pre">initSecContext()</span></tt></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_token</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the token sent from the client</li>
+<li><strong>acceptor_cred</strong> &#8211; the handle for the credentials (returned from
+acquireCred) used to accept the context, or None
+to use the default acceptor principal</li>
+<li><strong>ctx</strong> &#8211; the current context, or None for a new context</li>
+<li><strong>channel_bindings</strong> &#8211; the requested channel bindings
+(currently on None is accepted)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a tuple containing
+the (potentially modified) context,
+the authenticated name of the context initiator,
+the mechanism type used,
+the output token (to send to the client),
+the flags in use,
+the TTL for the context,
+and the delegated credential handle
+(or None if
+RequirementFlags.delegate_to_peer is not present
+in the flags)
+(i.e. (context, name, MechType, bytes,
+[RequirementFlag], int, delegated_cred, continue_needed))</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.acquireCred">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">acquireCred</tt><big>(</big><em>name</em>, <em>ttl=0</em>, <em>mechs=None</em>, <em>cred_usage=None</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.acquireCred" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acquires GSSAPI Credentials</p>
+<p>This method acquires credentials for the given
+name (imported with <a class="reference internal" href="#gssapi.base.impl.importName" title="gssapi.base.impl.importName"><tt class="xref py py-func docutils literal"><span class="pre">importName()</span></tt></a>) for the desired
+mechanims, with permissions to either initiate security
+contexts, accept them, or both.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> &#8211; the name object for which to get credentials</li>
+<li><strong>input_ttl</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; the requested TTL for these credentials</li>
+<li><strong>mechs</strong> ([<a class="reference internal" href="#gssapi.base.types.MechType" title="gssapi.base.types.MechType"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.base.types.MechType</span></tt></a>] or None) &#8211; the mechanims types with which these credentials
+are to be used, or None for the default set</li>
+<li><strong>cred_usage</strong> (<em>bool or None</em>) &#8211; How these credentials are going to be used:
+To accept a context (True), to initiate a
+context (False), or both (None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a tuple containing the actual credentials, the mechanisms
+for which these credentials are valid, and the actual TTL
+(which may be 0)
+(i.e. (creds, [MechType], ttl))</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.canonicalizeName">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">canonicalizeName</tt><big>(</big><em>name</em>, <em>mech_type</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.canonicalizeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Canonicalizes a GSSAPI Name into a Mechanism Name</p>
+<p>This method turns any GSSAPI name into a &#8220;mechanism name&#8221;,
+i.e. a name that would be returned as initator principal
+from acceptSecContext.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Unlike other methods, a mechanism type must be explicitly provided here;
+No default is available for this method.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> &#8211; the GSSAPI name to canonicalize</li>
+<li><strong>mech_type</strong> (<a class="reference internal" href="#gssapi.base.types.MechType" title="gssapi.base.types.MechType"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.base.types.MechType</span></tt></a>) &#8211; the mechanism type</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a canonicalized name</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">PyCapsule</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.compareName">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">compareName</tt><big>(</big><em>name1</em>, <em>name2</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.compareName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compares Two GSSAPI Names</p>
+<p>This method compares to GSSAPI names to see if they are
+equal.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name1</strong> &#8211; the first name to compare</li>
+<li><strong>name2</strong> &#8211; the second name to compare</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">whether or not the two names are equal</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.deleteSecContext">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">deleteSecContext</tt><big>(</big><em>context</em>, <em>output_needed=False</em><big>)</big><a class="reference internal" href="_modules/gssapi/base/impl.html#deleteSecContext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.impl.deleteSecContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Releases a security context</p>
+<p>This method releases a security context, potentially providing an
+output buffer as the result</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>context</strong> &#8211; the context to be released</li>
+<li><strong>output_needed</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; is an output_buffer desired?</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">bytes or None</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an output token, if requested (otherwise None)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.displayName">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">displayName</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.displayName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a GSSAPI Name into a String</p>
+<p>This function is essentially the opposite of <a class="reference internal" href="#gssapi.base.impl.importName" title="gssapi.base.impl.importName"><tt class="xref py py-func docutils literal"><span class="pre">importName()</span></tt></a>:
+it takes a GSSAPI name and converts it back into a string and
+name type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; a GSSAPI name capsule</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a tuple containing the string-version of the name
+and its name type</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">(bytes, <a class="reference internal" href="#gssapi.base.types.NameType" title="gssapi.base.types.NameType"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.base.types.NameType</span></tt></a>)</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.duplicateName">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">duplicateName</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.duplicateName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Duplicates a GSSAPI Name</p>
+<p>This method duplicates an existing GSSAPI name.
+Releasing the old name will not release the new
+name, etc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; the name to duplicate</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a new name identical to the old name</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">PyCapsule</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.exportName">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">exportName</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.exportName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports a GSSAPI Mechanism Name</p>
+<p>This method &#8220;produces a canonical contiguous string representation
+of a mechanism name, suitable for direct comparison for use in
+authorization functions&#8221;.  The input name must be a valid
+GSSAPI mechanism name, as generated by acceptSecContext or
+canonicalizeName.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A mechanism name does not, in fact, refer to the name of a
+mechanism.  Instead, it refers to a canonicalized name,
+such as the initiator name returned by acceptSecContext</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; a valid GSSAPI mechanism name</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a string version of the mechanism name</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bytes</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.getMIC">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">getMIC</tt><big>(</big><em>ctx</em>, <em>message</em>, <em>qop=None</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.getMIC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a MIC for a Message</p>
+<p>This method generates a cryptographic message integrity code
+for the supplied method.  The QoP can be changed to vary the
+algorithm used.  The output is a token that can be transfered
+to a peer application.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> &#8211; the current security context</li>
+<li><strong>message</strong> (<em>bytes</em>) &#8211; the message for which the MIC is to be generated</li>
+<li><strong>qop</strong> (<em>int or None</em>) &#8211; the quality of protection (used to change which algorithm
+is used) (supply None for default)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the MIC encoded into a token</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">bytes</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.getMechanismType">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">getMechanismType</tt><big>(</big><em>mech_type</em><big>)</big><a class="reference internal" href="_modules/gssapi/base/impl.html#getMechanismType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.impl.getMechanismType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a value from the MechType enum into a gss_OID</p>
+<p>This method converts a value from the MechType enum into a gss_OID,
+which can be used in GSSAPI methods such as initSecContext</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mech_type</strong> (<em>MechType</em>) &#8211; the mechanism type</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a gss_OID capsule representing the selected mechanism type</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.importName">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">importName</tt><big>(</big><em>name</em>, <em>name_type=&lt;EnumValue: NameType.hostbased_service [value=0]&gt;</em><big>)</big><a class="reference internal" href="_modules/gssapi/base/impl.html#importName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.impl.importName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a GSSAPI Name</p>
+<p>This method converts a string name and type into a &#8216;name&#8217;
+string usable in future calls to GSSAPI.</p>
+<p>NOTE: This name needs to have its name released when finished</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the plain &#8216;name&#8217; to obtain</li>
+<li><strong>name_type</strong> (<tt class="xref py py-class docutils literal"><span class="pre">NameType</span></tt>) &#8211; the type of the name we are passing in</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">bytes</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the GSSAPI name string for use in other GSSAPI methods</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.indicateMechs">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">indicateMechs</tt><big>(</big><big>)</big><a class="headerlink" href="#gssapi.base.impl.indicateMechs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the Currently Supported GSS Mechanisms</p>
+<p>This method gets a list of the GSS mechanisms
+supported by the current GSSAPI implementation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the supported mechanisms</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">[<a class="reference internal" href="#gssapi.base.types.MechType" title="gssapi.base.types.MechType"><tt class="xref py py-class docutils literal"><span class="pre">gssapi.base.types.MechType</span></tt></a>]</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.initSecContext">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">initSecContext</tt><big>(</big><em>target_name</em>, <em>cred=None</em>, <em>context=None</em>, <em>mech_type=None</em>, <em>flags=None</em>, <em>time=0</em>, <em>channel_bindings=None</em>, <em>input_token=None</em><big>)</big><a class="reference internal" href="_modules/gssapi/base/impl.html#initSecContext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.impl.initSecContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a GSS Security Context</p>
+<p>(Client)
+This method initializes a GSSAPI security context
+with the given parameters.  The default flags for
+the flags field are MUTUAL and SEQUENCE.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>target_name</strong> &#8211; the name of the target
+(commonly the server name, retrieved using importName)</li>
+<li><strong>cred</strong> &#8211; The handle for credentials claimed
+(returned from acquireCred),
+or None to use the default initiator principal</li>
+<li><strong>context</strong> &#8211; The current context, or None if this is the first call</li>
+<li><strong>mech_type</strong> &#8211; the mechanism type
+(None for default, otherwise a capsule
+from <a class="reference internal" href="#gssapi.base.impl.getMechanismType" title="gssapi.base.impl.getMechanismType"><tt class="xref py py-func docutils literal"><span class="pre">getMechanismType()</span></tt></a>)</li>
+<li><strong>flags</strong> ([<tt class="xref py py-class docutils literal"><span class="pre">RequirementFlag</span></tt>]) &#8211; the requested flags</li>
+<li><strong>time</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; the requested TTL for this context
+(0 uses the default TTL)</li>
+<li><strong>channel_bindings</strong> &#8211; the requested input channel bindings
+(currently only None is supported)</li>
+<li><strong>input_token</strong> (<em>bytes</em>) &#8211; the input token (use None for the first call)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a tuple containing
+the (potentially modified) context,
+the actual mechanism type used,
+the output token,
+the actual flags provided,
+the actual TTL for this context,
+and whether or not a continue is needed
+(i.e. (context, MechType, [RequirementFlag],
+bytes, TTL, continue_needed))</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.releaseCred">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">releaseCred</tt><big>(</big><em>cred_obj</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.releaseCred" title="Permalink to this definition">¶</a></dt>
+<dd><p>Releases GSSAPI credentials</p>
+<p>This method releases GSSAPI credentials that were
+allocated with acquireCred</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cred_obj</strong> &#8211; the name credentials object to be released</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.releaseName">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">releaseName</tt><big>(</big><em>name_obj</em><big>)</big><a class="reference internal" href="_modules/gssapi/base/impl.html#releaseName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.impl.releaseName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Releases a GSSAPI Name</p>
+<p>This method releases a GSSAPI name that was allocated with importName</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name_obj</strong> &#8211; the name object to be released</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.unwrap">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">unwrap</tt><big>(</big><em>context</em>, <em>message</em><big>)</big><a class="reference internal" href="_modules/gssapi/base/impl.html#unwrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.impl.unwrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unwraps a wrapped message</p>
+<p>This method unwraps a message that was previously
+wrapped by the other party</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>context</strong> (<em>bytes</em>) &#8211; the context of the current connection</li>
+<li><strong>message</strong> (<em>bytes</em>) &#8211; the input message</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">(bytes, bool, int)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a tuple containing
+the decrypted message,
+whether confidentiality was used,
+and the QoP used</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.verifyMIC">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">verifyMIC</tt><big>(</big><em>ctx</em>, <em>message</em>, <em>token</em>, <em>return_bool=False</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.verifyMIC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verifies a Message&#8217;s MIC</p>
+<p>This method verifies that the message matches the given message integrity
+code (token).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This method does not throw an error on GSS_S_DUPLICATE_TOKEN,
+which simply indicates that the token was valid and contained
+the correct MIC for the message, but had already be processed.
+Instead, it simply returns that the MIC was valid, since this
+is not really an error.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> &#8211; the current security context</li>
+<li><strong>message</strong> (<em>bytes</em>) &#8211; the message in question</li>
+<li><strong>token</strong> (<em>bytes</em>) &#8211; the MIC token for the message in question</li>
+<li><strong>return_bool</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; see return value explanation</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">this depends on the value of return_bool.
+If False, the QoP used to generate the MIC is returned
+if the verification is successfull, and and error is raised
+otherwise.  If True, a tuple is returned containing whether
+or not the MIC was valid, the QoP used, the major result code,
+and the minor result code (which can be interpreted with
+<a class="reference internal" href="#gssapi.base.status_utils.displayStatus" title="gssapi.base.status_utils.displayStatus"><tt class="xref py py-func docutils literal"><span class="pre">gssapi.base.status_utils.displayStatus()</span></tt></a>)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">int or (bool, int, int, int)</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first last">if there is an error and return_bool
+is set to False</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.wrap">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">wrap</tt><big>(</big><em>context</em>, <em>message</em>, <em>confidential=True</em>, <em>qop=None</em><big>)</big><a class="reference internal" href="_modules/gssapi/base/impl.html#wrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.impl.wrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wraps a message</p>
+<p>This method wraps a message with a MIC and potentially encrypts the message
+using the requested QoP</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>context</strong> (<em>bytes</em>) &#8211; the context of the current connection</li>
+<li><strong>message</strong> (<em>(unicode) str or bytes</em>) &#8211; the message to encrypt</li>
+<li><strong>confidential</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; whether or not to use confidentiality</li>
+<li><strong>qop</strong> (<em>int or None</em>) &#8211; specifies the quality of protection required
+(use None for the default)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">(bytes, bool)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a tuple containing the output message
+and whether confidentiality was used</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises GSSError:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="gssapi.base.impl.wrapSizeLimit">
+<tt class="descclassname">gssapi.base.impl.</tt><tt class="descname">wrapSizeLimit</tt><big>(</big><em>ctx</em>, <em>output_size</em>, <em>confidential=True</em>, <em>qop=None</em><big>)</big><a class="headerlink" href="#gssapi.base.impl.wrapSizeLimit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Max Message Size</p>
+<p>This method calculates the maxium size that a message can be
+in order to have the wrapped message fit within the given size.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ctx</strong> &#8211; the current security context</li>
+<li><strong>output_size</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; the desired maxiumum wrapped message size</li>
+<li><strong>conf_req</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; whether or not encryption is to be used when
+wrapping the message</li>
+<li><strong>qop</strong> (<em>int or None</em>) &#8211; the desired Quality of Protection (or None for default)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the max unwrapped message size</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-gssapi.base.status_utils">
+<span id="status-utils-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">status_utils</span></tt> Module<a class="headerlink" href="#module-gssapi.base.status_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="gssapi.base.status_utils.displayStatus">
+<tt class="descclassname">gssapi.base.status_utils.</tt><tt class="descname">displayStatus</tt><big>(</big><em>err_code</em>, <em>is_major_code</em>, <em>mech_type=None</em>, <em>message_context=0</em><big>)</big><a class="reference internal" href="_modules/gssapi/base/status_utils.html#displayStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.status_utils.displayStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a GSSAPI status code into a human-readable string</p>
+<p>Converts the given general GSSAPI (major) status code or
+mechanism-specific (minor) status code into a human-readable
+string.  This method may need to be called multiple times,
+which is what the message_context parameter is for.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>err_code</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; the status code in question</li>
+<li><strong>is_major_code</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; is this a general GSS status code (True)
+or a mechanism-specific status code (False)</li>
+<li><strong>mech_type</strong> &#8211; the OID of the mechanism type, or None for
+a default value (currently only this is supported)</li>
+<li><strong>message_context</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; the &#8220;context&#8221; for this call of displayStatus,
+returned from previous calls to displayStatus</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">(str, int, bool)</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a tuple containing the result message, the message context for
+any further calls, and whether or not further calls can be made</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-gssapi.base.types">
+<span id="types-module"></span><h2><a class="reference external" href="http://docs.python.org/library/types.html#types" title="(in Python v2.7)"><tt class="xref py py-mod docutils literal"><span class="pre">types</span></tt></a> Module<a class="headerlink" href="#module-gssapi.base.types" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="gssapi.base.types.GSSError">
+<em class="property">exception </em><tt class="descclassname">gssapi.base.types.</tt><tt class="descname">GSSError</tt><big>(</big><em>maj_code</em>, <em>min_code</em><big>)</big><a class="reference internal" href="_modules/gssapi/base/types.html#GSSError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.types.GSSError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>GSSAPI Error</p>
+<p>This Exception represents an error returned from the GSSAPI
+C bindings.  It contains the major and minor status codes
+returned by the method which caused the error, and can
+generate human-readable string messages from the error
+codes</p>
+<dl class="method">
+<dt id="gssapi.base.types.GSSError.gen_message">
+<tt class="descname">gen_message</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/gssapi/base/types.html#GSSError.gen_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.types.GSSError.gen_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all messages for this error&#8217;s status codes</p>
+<p>This method retrieves all messages for this error&#8217;s status codes,
+and forms them into a string for use as an exception message</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a string for use as this error&#8217;s message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="gssapi.base.types.GSSError.get_all_statuses">
+<tt class="descname">get_all_statuses</tt><big>(</big><em>code</em>, <em>is_maj</em><big>)</big><a class="reference internal" href="_modules/gssapi/base/types.html#GSSError.get_all_statuses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.types.GSSError.get_all_statuses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves all messages for a status code</p>
+<p>This method retrieves all human-readable messages
+available for the given status code.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>code</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; the status code in question</li>
+<li><strong>is_maj</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; whether this is a major status code (True)
+or minor status code (False)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">[str]</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of string messages for this error code</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gssapi.base.types.MechType">
+<em class="property">class </em><tt class="descclassname">gssapi.base.types.</tt><tt class="descname">MechType</tt><a class="reference internal" href="_modules/gssapi/base/types.html#MechType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.types.MechType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">flufl.enum._enum.IntEnum</span></tt></p>
+<p>GSSAPI Mechanism Types</p>
+<p>This IntEnum represents explicit GSSAPI mechanism types
+(to be used with initSecContext).</p>
+<p>Note that the integers behind these enum members do not
+correspond to any numbers in the GSSAPI C bindings, and are
+subject oto change at any point.</p>
+<dl class="attribute">
+<dt id="gssapi.base.types.MechType.kerberos">
+<tt class="descname">kerberos</tt><em class="property"> = &lt;EnumValue: MechType.kerberos [value=0]&gt;</em><a class="headerlink" href="#gssapi.base.types.MechType.kerberos" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gssapi.base.types.NameType">
+<em class="property">class </em><tt class="descclassname">gssapi.base.types.</tt><tt class="descname">NameType</tt><a class="reference internal" href="_modules/gssapi/base/types.html#NameType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.types.NameType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">flufl.enum._enum.IntEnum</span></tt></p>
+<p>GSSAPI Name Types</p>
+<p>This IntEnum represents GSSAPI name types
+(to be used with importName, etc)</p>
+<p>Note that the integers behind these
+enum members do not correspond to any numbers
+in the GSSAPI C bindings, and are subject
+to change at any point.</p>
+<dl class="attribute">
+<dt id="gssapi.base.types.NameType.anonymous">
+<tt class="descname">anonymous</tt><em class="property"> = &lt;EnumValue: NameType.anonymous [value=3]&gt;</em><a class="headerlink" href="#gssapi.base.types.NameType.anonymous" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.NameType.export">
+<tt class="descname">export</tt><em class="property"> = &lt;EnumValue: NameType.export [value=6]&gt;</em><a class="headerlink" href="#gssapi.base.types.NameType.export" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.NameType.hostbased_service">
+<tt class="descname">hostbased_service</tt><em class="property"> = &lt;EnumValue: NameType.hostbased_service [value=0]&gt;</em><a class="headerlink" href="#gssapi.base.types.NameType.hostbased_service" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.NameType.machine_uid">
+<tt class="descname">machine_uid</tt><em class="property"> = &lt;EnumValue: NameType.machine_uid [value=4]&gt;</em><a class="headerlink" href="#gssapi.base.types.NameType.machine_uid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.NameType.principal">
+<tt class="descname">principal</tt><em class="property"> = &lt;EnumValue: NameType.principal [value=1]&gt;</em><a class="headerlink" href="#gssapi.base.types.NameType.principal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.NameType.string_uid">
+<tt class="descname">string_uid</tt><em class="property"> = &lt;EnumValue: NameType.string_uid [value=5]&gt;</em><a class="headerlink" href="#gssapi.base.types.NameType.string_uid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.NameType.user">
+<tt class="descname">user</tt><em class="property"> = &lt;EnumValue: NameType.user [value=2]&gt;</em><a class="headerlink" href="#gssapi.base.types.NameType.user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gssapi.base.types.RequirementFlag">
+<em class="property">class </em><tt class="descclassname">gssapi.base.types.</tt><tt class="descname">RequirementFlag</tt><a class="reference internal" href="_modules/gssapi/base/types.html#RequirementFlag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#gssapi.base.types.RequirementFlag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">flufl.enum._enum.IntEnum</span></tt></p>
+<p>GSSAPI Requirement Flags</p>
+<p>This IntEnum represents flags to be used in the
+service flags parameter of initSecContext.</p>
+<p>The numbers behind the values correspond directly
+to their C counterparts.</p>
+<dl class="attribute">
+<dt id="gssapi.base.types.RequirementFlag.anonymous">
+<tt class="descname">anonymous</tt><em class="property"> = &lt;EnumValue: RequirementFlag.anonymous [value=6]&gt;</em><a class="headerlink" href="#gssapi.base.types.RequirementFlag.anonymous" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.RequirementFlag.confidentiality">
+<tt class="descname">confidentiality</tt><em class="property"> = &lt;EnumValue: RequirementFlag.confidentiality [value=4]&gt;</em><a class="headerlink" href="#gssapi.base.types.RequirementFlag.confidentiality" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.RequirementFlag.delegate_to_peer">
+<tt class="descname">delegate_to_peer</tt><em class="property"> = &lt;EnumValue: RequirementFlag.delegate_to_peer [value=0]&gt;</em><a class="headerlink" href="#gssapi.base.types.RequirementFlag.delegate_to_peer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.RequirementFlag.integrity">
+<tt class="descname">integrity</tt><em class="property"> = &lt;EnumValue: RequirementFlag.integrity [value=5]&gt;</em><a class="headerlink" href="#gssapi.base.types.RequirementFlag.integrity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.RequirementFlag.mutual_authentication">
+<tt class="descname">mutual_authentication</tt><em class="property"> = &lt;EnumValue: RequirementFlag.mutual_authentication [value=1]&gt;</em><a class="headerlink" href="#gssapi.base.types.RequirementFlag.mutual_authentication" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.RequirementFlag.out_of_sequence_detection">
+<tt class="descname">out_of_sequence_detection</tt><em class="property"> = &lt;EnumValue: RequirementFlag.out_of_sequence_detection [value=3]&gt;</em><a class="headerlink" href="#gssapi.base.types.RequirementFlag.out_of_sequence_detection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.RequirementFlag.replay_detection">
+<tt class="descname">replay_detection</tt><em class="property"> = &lt;EnumValue: RequirementFlag.replay_detection [value=2]&gt;</em><a class="headerlink" href="#gssapi.base.types.RequirementFlag.replay_detection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="gssapi.base.types.RequirementFlag.transferable">
+<tt class="descname">transferable</tt><em class="property"> = &lt;EnumValue: RequirementFlag.transferable [value=7]&gt;</em><a class="headerlink" href="#gssapi.base.types.RequirementFlag.transferable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">base Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">base</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-gssapi.base.ctypes"><tt class="docutils literal"><span class="pre">ctypes</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-gssapi.base.impl"><tt class="docutils literal"><span class="pre">impl</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-gssapi.base.status_utils"><tt class="docutils literal"><span class="pre">status_utils</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-gssapi.base.types"><tt class="docutils literal"><span class="pre">types</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href=""
+                        title="previous chapter">base Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/gssapi.base.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="#" title="base Package"
+             >previous</a> |</li>
+        <li><a href="index.html">PyGSSAPI 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Solly Ross.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>gssapi.base.types &mdash; PyGSSAPI 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="PyGSSAPI 1.0.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyGSSAPI 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for gssapi.base.types</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">flufl.enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span> <span class="nn">flufl.enum</span> <span class="kn">import</span> <span class="n">IntEnum</span>
+<span class="kn">from</span> <span class="nn">gssapi.base.ctypes</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">gssapi.base.status_utils</span> <span class="kn">import</span> <span class="n">displayStatus</span>
+
+<div class="viewcode-block" id="NameType"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.types.NameType">[docs]</a><span class="k">class</span> <span class="nc">NameType</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    GSSAPI Name Types</span>
+
+<span class="sd">    This IntEnum represents GSSAPI name types</span>
+<span class="sd">    (to be used with importName, etc)</span>
+
+<span class="sd">    Note that the integers behind these</span>
+<span class="sd">    enum members do not correspond to any numbers</span>
+<span class="sd">    in the GSSAPI C bindings, and are subject</span>
+<span class="sd">    to change at any point.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<span class="c">#   hostbased_service = GSS_C_NT_HOSTBASED_SERVICE </span>
+<span class="c">#   principal = GSS_C_NT_PRINCIPAL_NAME</span>
+<span class="c">#   user = GSS_C_NT_USER_NAME</span>
+<span class="c">#   anonymous = GSS_C_NT_ANONYMOUS</span>
+<span class="c">#   machine_uid = GSS_C_NT_MACHINE_UID_NAME</span>
+<span class="c">#   string_uid = GSS_C_NT_STRING_UID_NAME</span>
+<span class="c">#   export = GSS_C_NT_EXPORT_NAME</span>
+    <span class="n">hostbased_service</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">principal</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">anonymous</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">machine_uid</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">string_uid</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">export</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="c"># NOTE: there are more kerberos specific names, but I think</span>
+    <span class="c">#       those are just hold-overs from before the GSS_C_NT_</span>
+    <span class="c">#       names were there (check gss_krb5_nt_)</span>
+</div>
+<div class="viewcode-block" id="RequirementFlag"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.types.RequirementFlag">[docs]</a><span class="k">class</span> <span class="nc">RequirementFlag</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    GSSAPI Requirement Flags</span>
+
+<span class="sd">    This IntEnum represents flags to be used in the</span>
+<span class="sd">    service flags parameter of initSecContext.</span>
+
+<span class="sd">    The numbers behind the values correspond directly</span>
+<span class="sd">    to their C counterparts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">delegate_to_peer</span> <span class="o">=</span> <span class="n">GSS_C_DELEG_FLAG</span>
+    <span class="n">mutual_authentication</span> <span class="o">=</span> <span class="n">GSS_C_MUTUAL_FLAG</span>
+    <span class="n">replay_detection</span> <span class="o">=</span> <span class="n">GSS_C_REPLAY_FLAG</span>
+    <span class="n">out_of_sequence_detection</span> <span class="o">=</span> <span class="n">GSS_C_SEQUENCE_FLAG</span>
+    <span class="n">confidentiality</span> <span class="o">=</span> <span class="n">GSS_C_CONF_FLAG</span>
+    <span class="n">integrity</span> <span class="o">=</span> <span class="n">GSS_C_INTEG_FLAG</span>
+    <span class="n">anonymous</span> <span class="o">=</span> <span class="n">GSS_C_ANON_FLAG</span>
+    <span class="n">transferable</span> <span class="o">=</span> <span class="n">GSS_C_TRANS_FLAG</span>
+</div>
+<div class="viewcode-block" id="MechType"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.types.MechType">[docs]</a><span class="k">class</span> <span class="nc">MechType</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    GSSAPI Mechanism Types</span>
+
+<span class="sd">    This IntEnum represents explicit GSSAPI mechanism types</span>
+<span class="sd">    (to be used with initSecContext).</span>
+<span class="sd">    </span>
+<span class="sd">    Note that the integers behind these enum members do not</span>
+<span class="sd">    correspond to any numbers in the GSSAPI C bindings, and are</span>
+<span class="sd">    subject oto change at any point.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">kerberos</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c"># TODO(ross): make an error for each error return code</span></div>
+<div class="viewcode-block" id="GSSError"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.types.GSSError">[docs]</a><span class="k">class</span> <span class="nc">GSSError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    GSSAPI Error</span>
+
+<span class="sd">    This Exception represents an error returned from the GSSAPI</span>
+<span class="sd">    C bindings.  It contains the major and minor status codes</span>
+<span class="sd">    returned by the method which caused the error, and can</span>
+<span class="sd">    generate human-readable string messages from the error</span>
+<span class="sd">    codes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maj_code</span><span class="p">,</span> <span class="n">min_code</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new GSSError</span>
+
+<span class="sd">        This method creates a new GSSError, retrieves the releated human-readable</span>
+<span class="sd">        string messages, and uses the results to construct an</span>
+<span class="sd">        exception message</span>
+
+<span class="sd">        :param int maj_code: the major code associated with this error</span>
+<span class="sd">        :param int min_code: the minor code associated with this error</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">maj_code</span> <span class="o">=</span> <span class="n">maj_code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_code</span> <span class="o">=</span> <span class="n">min_code</span>
+        
+        <span class="nb">super</span><span class="p">(</span><span class="n">GSSError</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gen_message</span><span class="p">())</span>
+
+<div class="viewcode-block" id="GSSError.get_all_statuses"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.types.GSSError.get_all_statuses">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_statuses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">is_maj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves all messages for a status code</span>
+
+<span class="sd">        This method retrieves all human-readable messages</span>
+<span class="sd">        available for the given status code.</span>
+
+<span class="sd">        :param int code: the status code in question</span>
+<span class="sd">        :param bool is_maj: whether this is a major status code (True) or minor status code (False)</span>
+<span class="sd">        :rtype: [str]</span>
+<span class="sd">        :returns: a list of string messages for this error code</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">last_str</span><span class="p">,</span> <span class="n">last_ctx</span><span class="p">,</span> <span class="n">cont</span> <span class="o">=</span> <span class="n">displayStatus</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">is_maj</span><span class="p">)</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">last_str</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">cont</span><span class="p">:</span>
+            <span class="n">last_str</span><span class="p">,</span> <span class="n">last_ctx</span><span class="p">,</span> <span class="n">cont</span> <span class="o">=</span> <span class="n">displayStatus</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">is_maj</span><span class="p">,</span> <span class="n">message_context</span><span class="o">=</span><span class="n">last_ctx</span><span class="p">)</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">last_str</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">res</span>
+</div>
+<div class="viewcode-block" id="GSSError.gen_message"><a class="viewcode-back" href="../../../gssapi.base.html#gssapi.base.types.GSSError.gen_message">[docs]</a>    <span class="k">def</span> <span class="nf">gen_message</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves all messages for this error&#39;s status codes</span>
+
+<span class="sd">        This method retrieves all messages for this error&#39;s status codes,</span>
+<span class="sd">        and forms them into a string for use as an exception message</span>
+
+<span class="sd">        :rtype: str</span>
+<span class="sd">        :returns: a string for use as this error&#39;s message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">maj_statuses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_statuses</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maj_code</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="n">min_statuses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_statuses</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_code</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s">&quot;Major ({maj_stat}): {maj_str}, Minor ({min_stat}): {min_str}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">maj_stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maj_code</span><span class="p">,</span>
+            <span class="n">maj_str</span> <span class="o">=</span> <span class="n">maj_statuses</span><span class="p">,</span>
+            <span class="n">min_stat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_code</span><span class="p">,</span>
+            <span class="n">min_str</span> <span class="o">=</span> <span class="n">min_statuses</span>
+        <span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">PyGSSAPI 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Solly Ross.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
