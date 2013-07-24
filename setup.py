@@ -63,10 +63,15 @@ setup(
     url="https://github.com/directxman12/python-gssapi",
     classifiers=[
         'Development Status :: 4 - Beta',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Security'
+        'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     ext_modules = [ext_module_b, ext_module_ct, ext_module_su],
     install_requires=[
