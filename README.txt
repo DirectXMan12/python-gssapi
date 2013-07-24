@@ -2,6 +2,12 @@
 PyGSSAPI
 ========
 
+.. role:: python(code)
+   :language: python
+
+.. role:: bash(code)
+   :language: bash
+
 PyGSSAPI provides both low-level and high level wrappers around the GSSAPI
 C libraries.  While it focuses on the Kerberos mechanism, it should also be
 useable with other GSSAPI mechanisms that do not rely on mechanism-specific
@@ -44,15 +50,14 @@ Tests
 =====
 
 I have written some tests of PyGSSAPI; they live in the `gssapi.tests`
-directory.  Currently the basic `gssapi.base` commands have been tested.
-Before running the tests, a valid 'host/[FQDN]' (e.g. 'host/sross.localdomain')
-must have been `kinit`-ed.  If you run `tox`, it will do this for you (you will
-likely need to run `tox` with `sudo`).  Additionally, a normal kerberos user
-should also have been `kinit`-ed
+directory.  Currently the basic :python:`gssapi.base` commands and
+:python:`gssapi.client.BasicGSSClient` have been tested.  Before running
+the tests, a valid 'host/[FQDN]' (e.g. 'host/some.domain') must have been
+:bash:`kinit`-ed.  If you run :bash:`tox`, it will do this for you (you will
+likely need to run :bash:`tox` with :bash:`sudo`).
 
 .. code-block:: bash
 
-   $ sudo kinit some_user
    $ sudo tox
 
 or 
@@ -60,8 +65,7 @@ or
 .. code-block:: bash
    
    $ sudo kinit host/some.domain -k
-   $ sudo kinit some_user
-   $ sudo nosetests
+   $ sudo setup.py nosetests
 
 Structure
 =========
@@ -78,19 +82,20 @@ The low-level API lives in `gssapi.base`.  The methods contained therein
 are designed to match closely with the original GSSAPI C methods.  They
 follow the given format:
 
-* Names are camelCased versions of the C method names, with the 'gssapi_'
-  prefix removed
+* Names are camelCased versions of the C method names, with the 
+  :python:`gssapi_` prefix removed
 
-* Parameters which use C int constants as enums have `flufl.enum` IntEnums
-  defined, and thus may be passed either the enum members or integers
+* Parameters which use C int constants as enums have 
+  :python:`flufl.enum.IntEnum` classes defined, and thus may be passed
+  either the enum members or integers
 
 * In cases where a specific constant is passed in the C API to represent
-  a default value, `None` should be passed instead
+  a default value, :python:`None` should be passed instead
 
-* In cases where non-integer C constants are passed, `flufl.enum` Enums
-  are defined for common values
+* In cases where non-integer C constants are passed, `flufl.enum.Enum`
+  classes are defined for common values
 
-* Major and minor error codes are returned via GSSErrors
+* Major and minor error codes are returned via :python:`gssapi.base.GSSError`
 
 * All other relevant output values are returned in a tuple in the return
   value of the method (in cases where a non-error major status code may
@@ -122,9 +127,9 @@ TODO(sross): provide more examples
 High-Level API
 --------------
 
-The high-level API lives directly under `gssapi`.  The classes contained
-in each file are designed to provide a more Python, Object-Oriented view
-of GSSAPI.  Currently, they are designed for the basic GSSAPI tasks, but
+The high-level API lives directly under :python:`gssapi`.  The classes 
+contained in each file are designed to provide a more Python, Object-Oriented
+view of GSSAPI.  Currently, they are designed for the basic GSSAPI tasks, but
 will be expanded upon in the future.
 
 Structure
