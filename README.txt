@@ -35,7 +35,7 @@ Easy Way
 
 .. code-block:: bash
 
-    $ pip install py-gssapi
+    $ pip install pygssapi
 
 From the Git Repo
 -----------------
