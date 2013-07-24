@@ -70,7 +70,7 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: Implementation :: CPython',
-        'Topic :: Security'
+        'Topic :: Security',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     ext_modules = [ext_module_b, ext_module_ct, ext_module_su],
