@@ -8,3 +8,4 @@ build
 *.swo
 *.so
 .tox
+dist
