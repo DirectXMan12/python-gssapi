@@ -52,9 +52,10 @@ ext_module_su = Extension(
     ]
 )
 
-long_desc = re.sub(r':(python|bash|code):', '',
-                   re.sub(r'\.\. code-block:: \w+', '::',
-                          open('README.txt').read()))
+long_desc = re.sub('\.\. role:: \w+\(code\)\s*\n\s*.+', '',
+                   re.sub(r':(python|bash|code):', '',
+                          re.sub(r'\.\. code-block:: \w+', '::',
+                                 open('README.txt').read())))
 
 setup(
     name='PyGSSAPI',
