@@ -100,7 +100,7 @@ def canonicalizeName(name, mech_type):
 
     :param name: the GSSAPI name to canonicalize
     :param mech_type: the mechanism type
-    :type mech_type: :class:`gssapi.base.types.MechanismType`
+    :type mech_type: :class:`gssapi.base.types.MechType`
     :returns: a canonicalized name
     :rtype: PyCapsule
     :except GSSError:
