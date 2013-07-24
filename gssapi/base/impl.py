@@ -220,7 +220,7 @@ def initSecContext(target_name, cred=None, context=None, mech_type=None,
               the actual TTL for this context,
               and whether or not a continue is needed
               (i.e. (context, MechType, [RequirementFlag],
-                     bytes, TTL, continue_needed))
+              bytes, TTL, continue_needed))
     :except GSSError:
     """
 
@@ -250,11 +250,11 @@ def acceptSecContext(input_token, acceptor_cred=None,
               the flags in use,
               the TTL for the context,
               and the delegated credential handle
-                (or None if
-                 RequirementFlags.delegate_to_peer is not present
-                 in the flags)
+              (or None if
+              RequirementFlags.delegate_to_peer is not present
+              in the flags)
               (i.e. (context, name, MechType, bytes,
-                     [RequirementFlag], int, delegated_cred, continue_needed))
+              [RequirementFlag], int, delegated_cred, continue_needed))
     :except GSSError:
     """
 
@@ -310,16 +310,15 @@ def verifyMIC(ctx, message, token, return_bool=False):
     :param bytes message: the message in question
     :param bytes token: the MIC token for the message in question
     :param bool return_bool: see return value explanation
-    :returns: this depends on the value of :param:`return_bool`.
+    :returns: this depends on the value of return_bool.
               If False, the QoP used to generate the MIC is returned
               if the verification is successfull, and and error is raised
-              otherwise.
-              If True, a tuple is returned containing whether or not the
-              MIC was valid, the QoP used, the major result code, and the
-              minor result code (which can be interpreted with
+              otherwise.  If True, a tuple is returned containing whether
+              or not the MIC was valid, the QoP used, the major result code,
+              and the minor result code (which can be interpreted with
               :func:`gssapi.base.status_utils.displayStatus`)
     :rtype: int or (bool, int, int, int)
-    :except GSSError: if there is an error and :param:`return_bool`
+    :except GSSError: if there is an error and return_bool
                       is set to False
     """
 
