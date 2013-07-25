@@ -893,7 +893,7 @@ verifyMIC(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-wrapSizeLimit(PyObject *self, PyObject *args, PyObject **keywds)
+wrapSizeLimit(PyObject *self, PyObject *args, PyObject *keywds)
 {
     PyObject *raw_ctx;
     int message_size;
