@@ -204,7 +204,7 @@ def initSecContext(Name target_name not None, Creds cred=None,
         raise GSSError(maj_stat, min_stat)
 
 
-def acceptSecContext(input_token, Creds acceptor_cred=None,
+def acceptSecContext(input_token not None, Creds acceptor_cred=None,
                      SecurityContext context=None, channel_bindings=None):
     """
     acceptSecContext(input_token, acceptor_cred=None, context=None, channel_bindings=None) -> (SecurityContext, Name, MechType, bytes, [RequirementFlag], int, Creds, bool)
@@ -237,13 +237,10 @@ def acceptSecContext(input_token, Creds acceptor_cred=None,
         GSSError
     """
     cdef gss_channel_bindings_t bdng = GSS_C_NO_CHANNEL_BINDINGS
-    cdef gss_buffer_desc input_token_buffer = gss_buffer_desc(0, NULL)  # GSS_C_EMPTY_BUFFER
+    cdef gss_buffer_desc input_token_buffer = gss_buffer_desc(len(input_token),
+                                                              input_token)
     cdef gss_ctx_id_t act_ctx = context.raw_ctx if context is not None else GSS_C_NO_CONTEXT
     cdef gss_cred_id_t act_acceptor_cred = acceptor_cred.raw_creds if acceptor_cred is not None else GSS_C_NO_CREDENTIAL
-
-    if input_token is not None:
-        input_token_buffer.value = input_token
-        input_token_buffer.length = len(input_token)
 
     cdef gss_name_t initiator_name
     cdef gss_OID mech_type
