@@ -1,7 +1,7 @@
-#!/usr/bin/env python2.7
-import setuptools
+#!/usr/bin/env python
 from setuptools import setup
-from setuptools import Extension
+from setuptools.extension import Extension
+from Cython.Distutils import build_ext
 import sys
 import re
 
@@ -19,36 +19,63 @@ except ImportError:
 
     get_output = _get_output
 
-ext_module_b = Extension(
-    'gssapi.base.impl',
+ext_module_misc = Extension(
+    'gssapi.base.misc',
     extra_link_args = get_output('krb5-config --libs gssapi').split(),
     extra_compile_args = get_output('krb5-config --cflags gssapi').split(),
-#   include_dirs=['/home/sross/pydebug/include/python2.7'],
-    include_dirs=['./sys_src'],
     sources = [
-        'sys_src/gssapi.base.impl.c'
+        'gssapi/base/misc.pyx',
+#        'gssapi/base/cython_converters.pyx'
     ]
 )
 
-ext_module_ct = Extension(
-    'gssapi.base.ctypes',
+ext_module_creds = Extension(
+    'gssapi.base.creds',
     extra_link_args = get_output('krb5-config --libs gssapi').split(),
     extra_compile_args = get_output('krb5-config --cflags gssapi').split(),
-#   include_dirs=['/home/sross/pydebug/include/python2.7'],
-    include_dirs=['./sys_src'],
     sources = [
-        'sys_src/gssapi.base.ctypes.c'
+        'gssapi/base/creds.pyx',
+#        'gssapi/base/cython_converters.pyx'
     ]
 )
 
-ext_module_su = Extension(
-    'gssapi.base.status_utils',
+ext_module_names = Extension(
+    'gssapi.base.names',
     extra_link_args = get_output('krb5-config --libs gssapi').split(),
     extra_compile_args = get_output('krb5-config --cflags gssapi').split(),
-#   include_dirs=['/home/sross/pydebug/include/python2.7'],
-    include_dirs=['./sys_src'],
     sources = [
-        'sys_src/gssapi.base.status_utils.c'
+        'gssapi/base/names.pyx',
+#        'gssapi/base/cython_converters.pyx'
+    ]
+)
+
+ext_module_sec_contexts = Extension(
+    'gssapi.base.sec_contexts',
+    extra_link_args = get_output('krb5-config --libs gssapi').split(),
+    extra_compile_args = get_output('krb5-config --cflags gssapi').split(),
+    sources = [
+        'gssapi/base/sec_contexts.pyx',
+#        'gssapi/base/cython_converters.pyx'
+    ]
+)
+
+ext_module_types = Extension(
+    'gssapi.base.types',
+    extra_link_args = get_output('krb5-config --libs gssapi').split(),
+    extra_compile_args = get_output('krb5-config --cflags gssapi').split(),
+    sources = [
+        'gssapi/base/types.pyx',
+#        'gssapi/base/cython_converters.pyx'
+    ]
+)
+
+ext_module_message = Extension(
+    'gssapi.base.message',
+    extra_link_args = get_output('krb5-config --libs gssapi').split(),
+    extra_compile_args = get_output('krb5-config --cflags gssapi').split(),
+    sources = [
+        'gssapi/base/message.pyx',
+#        'gssapi/base/cython_converters.pyx'
     ]
 )
 
@@ -79,7 +106,15 @@ setup(
         'Topic :: Security',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
-    ext_modules = [ext_module_b, ext_module_ct, ext_module_su],
+    cmdclass = {'build_ext': build_ext},
+    ext_modules = [
+        ext_module_misc,
+        ext_module_creds,
+        ext_module_names,
+        ext_module_sec_contexts,
+        ext_module_types,
+        ext_module_message
+    ],
     install_requires=[
         'flufl.enum >= 4.0'
     ],

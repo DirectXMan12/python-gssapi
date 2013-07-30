@@ -9,3 +9,4 @@
 *.so
 .tox
 dist
+gssapi/**/*.c
