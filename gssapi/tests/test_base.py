@@ -112,6 +112,53 @@ class TestBaseUtilities(unittest.TestCase):
         gb.releaseName(name)
         gb.releaseCred(creds)
 
+    def test_inquire_context(self):
+        target_name = gb.importName(TARGET_SERVICE_NAME)
+        ctx_resp = gb.initSecContext(target_name)
+
+        client_token1 = ctx_resp[3]
+        client_ctx = ctx_resp[0]
+        str_server_name = (TARGET_SERVICE_NAME + b'/' +
+                           socket.getfqdn().encode('utf-8'))
+        server_name = gb.importName(str_server_name,
+                                    gb.NameType.principal)
+        server_creds = gb.acquireCred(server_name)[0]
+        server_resp = gb.acceptSecContext(client_token1,
+                                          acceptor_cred=server_creds)
+        server_tok = server_resp[3]
+
+        client_resp2 = gb.initSecContext(target_name,
+                                         context=client_ctx,
+                                         input_token=server_tok)
+        ctx = client_resp2[0]
+
+        inq_resp = gb.inquireContext(ctx)
+        inq_resp.shouldnt_be_none()
+
+        (src_name, target_name, ttl, mech_type,
+         flags, local_est, is_open) = inq_resp
+
+        src_name.shouldnt_be_none()
+        src_name.should_be_a(gb.Name)
+
+        target_name.shouldnt_be_none()
+        target_name.should_be_a(gb.Name)
+
+        ttl.should_be_a(int)
+
+        mech_type.shouldnt_be_none()
+        mech_type.should_be(gb.MechType.kerberos)
+
+        flags.shouldnt_be_none()
+        flags.should_be_a(list)
+        flags.shouldnt_be_empty()
+
+        local_est.should_be_a(bool)
+        local_est.should_be_true()
+
+        is_open.should_be_a(bool)
+        is_open.should_be_true()
+
 
 class TestInitContext(unittest.TestCase):
     def setUp(self):

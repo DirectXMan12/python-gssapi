@@ -286,6 +286,50 @@ def acceptSecContext(input_token, Creds acceptor_cred=None,
         raise GSSError(maj_stat, min_stat)
 
 
+def inquireContext(SecurityContext context not None):
+    """
+    inquireContext(context) -> (Name, Name, int, MechType, [RequirementFlag], bool, bool)
+    Get information about a security context.
+
+    This method obtains information about a security context, including
+    the initiator and target names, as well as the TTL, mech type,
+    flags, and its current state (open vs closed).
+
+    Args:
+        context (SecurityContext): the context in question
+
+    Returns:
+        (Name, Name, int, MechType, [RequirementFlag], bool, bool): the
+            initiator name, the target name, the TTL, the mech type, the
+            flags, whether or not the context was locally initiated,
+            and whether or not the context is currently fully established
+
+    Raises:
+        GSSError
+    """
+    cdef gss_name_t src_name, target_name
+    cdef OM_uint32 ttl
+    cdef gss_OID mech_type
+    cdef OM_uint32 flags,
+    cdef int locally_init, is_complete
+
+    cdef OM_uint32 maj_stat, min_stat
+
+    maj_stat = gss_inquire_context(&min_stat, context.raw_ctx, &src_name,
+                                   &target_name, &ttl, &mech_type, &flags,
+                                   &locally_init, &is_complete)
+
+    cdef Name sn = Name()
+    cdef Name tn = Name()
+    if maj_stat == GSS_S_COMPLETE:
+        sn.raw_name = src_name
+        tn.raw_name = target_name
+        return (sn, tn, ttl, c_create_mech_type(mech_type[0]),
+                c_create_flags_list(flags), <bint>locally_init,
+                <bint>is_complete)
+    else:
+        raise GSSError(maj_stat, min_stat)
+
 def deleteSecContext(SecurityContext context not None, local_only=True):
     """
     deleteSecContext(context) -> bytes or None
