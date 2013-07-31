@@ -11,10 +11,11 @@ class GSSContext(gss.SecurityContext):
     def __new__(cls, base_ctx, *args, **kwargs):
         return super(GSSContext, cls).__new__(cls, base_ctx)
 
-    def __init__(self, base_ctx, initiator, mech, token,
-                 flags, ttl, delegated_credentials, continue_needed):
-        self.initiator = initiator
-        self.mech = mech
+    def __init__(self, base_ctx, mech_type, token,
+                 flags, ttl, continue_needed,
+                 delegated_credentials=None, initiator_name=None):
+        self.initiator_name = initiator_name
+        self.mech_type = mech_type
         self.token = token
         self.flags = flags
         self.ttl = ttl
@@ -28,15 +29,14 @@ class GSSContext(gss.SecurityContext):
         Like :func:`GSSContext.accept_new`, but
         updates the current context in-place
         """
-
-        res = type(self).accept_new(*args, context=self, **kwargs)
-        self.initiator = res.initiator
-        self.mech = res.mech
-        self.token = res.token
-        self.flags = res.flags
-        self.ttl = res.ttl
-        self.delegated_credentials = res.delegated_credentials
-        self.continue_needed = res.continue_needed
+        res = gss.acceptSecContext(*args, context=self, **kwargs)
+        self.initiator_name = GSSName(base_name=res[1])
+        self.mech_type = res[2]
+        self.token = res[3]
+        self.flags = res[4]
+        self.ttl = res[5]
+        self.delegated_credentials = GSSCredentials(res[6])
+        self.continue_needed = res[7]
 
         return self
 
@@ -47,19 +47,19 @@ class GSSContext(gss.SecurityContext):
         Like GSSContext.initiate_new, but updates the current
         context in-place.
         """
-
-        res = type(self).accept_new(*args, context=self, **kwargs)
-        self.mech = res.mech
-        self.token = res.token
-        self.flags = res.flags
-        self.ttl = res.ttl
-        self.continue_needed = res.continue_needed
+        res = gss.initSecContext(*args, context=self, **kwargs)
+        self.mech = res[1],
+        self.flags = res[2]
+        self.token = res[3]
+        self.ttl = res[4]
+        self.continue_needed = res[5]
 
         return self
 
     @classmethod
-    def accept_new(cls, tok, acceptor_cred=None,
-                   channel_bindings=None):
+    def accept_new(cls, input_token, acceptor_cred=None,
+                   channel_bindings=None,
+                   context=None):
         """
         Accept a new security context
 
@@ -68,18 +68,19 @@ class GSSContext(gss.SecurityContext):
         :func:`gssapi.base.impl.acceptSecContext`
         except as noted here.
 
-        :param cred: the acceptor credentials
-        :type cred: GSSCredentials or None
+        :param acceptor_cred: the acceptor credentials
+        :type acceptor_cred: GSSCredentials or None
         :returns: the newly accepted context
         :rtype: GSSContext
         """
 
-        resp = gss.acceptSecContext(tok, acceptor_cred=acceptor_cred,
-                                    channel_bindings=channel_bindings)
+        resp = gss.acceptSecContext(input_token, acceptor_cred=acceptor_cred,
+                                    channel_bindings=channel_bindings,
+                                    context=context)
 
         return GSSContext(resp[0],
-                          initiator=GSSName(base_name=resp[1]),
-                          mech=resp[2],
+                          initiator_name=GSSName(base_name=resp[1]),
+                          mech_type=resp[2],
                           token=resp[3],
                           flags=resp[4],
                           ttl=resp[5],
@@ -93,10 +94,17 @@ class GSSContext(gss.SecurityContext):
 
         resp = gss.initSecContext(name, input_token=input_token,
                                   mech_type=mech_type, flags=flags, ttl=ttl,
-                                  channel_bindings=channel_bindings)
+                                  channel_bindings=channel_bindings,
+                                  context=context)
 
-        return GSSContext(resp[0], mech=resp[1], flags=resp[2], token=resp[3],
+        return GSSContext(resp[0], mech_type=resp[1], flags=resp[2], token=resp[3],
                           ttl=resp[4], continue_needed=resp[5])
+
+    def release(self, local_only=True):
+        """
+        Release the context without destroying its attributes
+        """
+        return gss.deleteSecContext(self, local_only=local_only)
 
 
 class GSSCredentials(gss.Creds):
@@ -109,8 +117,7 @@ class GSSCredentials(gss.Creds):
         self.ttl = 0
         self.mechs = None
 
-    def impersonate(name, cred_usage='both', ttl=None,
-                    mechs=None, reuse_mechs=True):
+    def impersonate(self, *args, **kwargs):
         """
         Use these credentials to impersonate a name
         
@@ -131,24 +138,22 @@ class GSSCredentials(gss.Creds):
         :returns: a new set of impersonating credentials
         :rtype: GSSCredentials
         """
+        if 'ttl' not in kwargs or kwargs['ttl'] == None:
+            kwargs['ttl'] = self.ttl
+        if 'reuse_mechs' in kwargs:
+            if kwargs['reuse_mechs']:
+                kwargs['mechs'] = self.mechs
+            del kwargs['reuse_mechs']
 
-        if ttl is None:
-            ttl = self.ttl
-
-        if reuse_mechs:
-            mechs = self.mechs
-
-        resp = gss.acquireCredImpersonateName(self.capsule, name.capsule,
-                                              cred_usage=cred_usage, ttl=ttl,
-                                              mechs=mechs)
-        res = GSSCredentials(resp[0])
+        resp = gss.acquireCredImpersonateName(self, *args, **kwargs)
+        res = type(self)(resp[0])
         res.ttl = resp[2]
         res.mechs = resp[1]
 
         return res
 
     @classmethod
-    def acquire(cls, name, cred_usage='both', ttl=0, mechs=None):
+    def acquire(cls, *args, **kwargs):
         """
         Acquire credentials for the given name
 
@@ -163,8 +168,7 @@ class GSSCredentials(gss.Creds):
         :rtype: GSSCredentials
         """
 
-        resp = gss.acquireCred(name, cred_usage=cred_usage,
-                               ttl=ttl, mechs=mechs)
+        resp = gss.acquireCred(*args, **kwargs)
 
         res = cls(resp[0])
         res.ttl = resp[2]
