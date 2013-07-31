@@ -143,12 +143,21 @@ class GSSError(Exception):
         """
 
         res = []
-        last_str, last_ctx, cont = displayStatus(code, is_maj)
-        res.append(last_str)
-        while cont:
-            last_str, last_ctx, cont = displayStatus(code, is_maj,
-                                                     message_context=last_ctx)
+        try:
+            last_str, last_ctx, cont = displayStatus(code, is_maj)
             res.append(last_str)
+        except GSSError:
+            res.append('issue decoding code: {0}'.format(code).encode('utf-8'))
+            cont = False
+
+        while cont:
+            try:
+                last_str, last_ctx, cont = displayStatus(code, is_maj,
+                                                         message_context=last_ctx)
+                res.append(last_str)
+            except GSSError:
+                res.append('issue decoding code: {0}'.format(code).encode('utf-8'))
+                cont = False
 
         return res
 

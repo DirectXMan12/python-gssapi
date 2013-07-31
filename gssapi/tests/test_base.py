@@ -4,8 +4,8 @@ import socket
 import gssapi.base as gb
 
 
-TARGET_SERVICE_NAME = 'host'
-INITIATOR_PRINCIPAL = 'admin'
+TARGET_SERVICE_NAME = b'host'
+INITIATOR_PRINCIPAL = b'admin'
 
 
 class TestBaseUtilities(unittest.TestCase):
@@ -22,7 +22,7 @@ class TestBaseUtilities(unittest.TestCase):
         imported_name = gb.importName(TARGET_SERVICE_NAME)
 
         imported_name.shouldnt_be_none()
-        imported_name.should_be_a('PyCapsule')
+        imported_name.should_be_a(gb.Name)
 
         gb.releaseName(imported_name)
 
@@ -34,7 +34,7 @@ class TestBaseUtilities(unittest.TestCase):
                                                  gb.MechType.kerberos)
 
         canonicalized_name.shouldnt_be_none()
-        canonicalized_name.should_be_a("PyCapsule")
+        canonicalized_name.should_be_a(gb.Name)
 
         exported_name = gb.exportName(canonicalized_name)
 
@@ -59,7 +59,7 @@ class TestBaseUtilities(unittest.TestCase):
 
         displayed_name.shouldnt_be_none()
         displayed_name.should_be_a(bytes)
-        displayed_name.should_be(TARGET_SERVICE_NAME.encode('utf-8'))
+        displayed_name.should_be(TARGET_SERVICE_NAME)
 
         out_type.shouldnt_be_none()
         out_type.should_be(gb.NameType.hostbased_service)
@@ -78,19 +78,13 @@ class TestBaseUtilities(unittest.TestCase):
         gb.releaseName(service_name2)
         gb.releaseName(init_name)
 
-    def test_get_mech_type(mech_type):
-        mech_type = gb.getMechanismType(gb.MechType.kerberos)
-
-        mech_type.shouldnt_be_none()
-        mech_type.should_be_a('PyCapsule')
-
     def test_display_status(self):
         status_resp = gb.displayStatus(0, False)
         status_resp.shouldnt_be_none()
 
         (status, ctx, cont) = status_resp
 
-        status.should_be_a(str)
+        status.should_be_a(bytes)
         status.shouldnt_be_empty()
 
         ctx.should_be_a(int)
@@ -99,14 +93,16 @@ class TestBaseUtilities(unittest.TestCase):
         cont.should_be_false()
 
     def test_acquire_creds(self):
-        name = gb.importName('host/sross.localdomain', gb.NameType.principal)
+        name = gb.importName((TARGET_SERVICE_NAME + b'/' +
+                              socket.getfqdn().encode('utf-8')),
+                             gb.NameType.principal)
         cred_resp = gb.acquireCred(name)
         cred_resp.shouldnt_be_none()
 
         (creds, actual_mechs, ttl) = cred_resp
 
         creds.shouldnt_be_none()
-        creds.should_be_a('PyCapsule')
+        creds.should_be_a(gb.Creds)
 
         actual_mechs.shouldnt_be_empty()
         actual_mechs.should_include(gb.MechType.kerberos)
@@ -132,7 +128,7 @@ class TestInitContext(unittest.TestCase):
          out_req_flags, out_token, out_ttl, cont_needed) = ctx_resp
 
         ctx.shouldnt_be_none()
-        ctx.should_be_a('PyCapsule')
+        ctx.should_be_a(gb.SecurityContext)
 
         out_mech_type.should_be(gb.MechType.kerberos)
 
@@ -156,9 +152,10 @@ class TestAcceptContext(unittest.TestCase):
 
         self.client_token = ctx_resp[3]
         self.client_ctx = ctx_resp[0]
+        self.client_ctx.shouldnt_be_none()
 
-        str_server_name = (TARGET_SERVICE_NAME + '/' +
-                           socket.getfqdn())
+        str_server_name = (TARGET_SERVICE_NAME + b'/' +
+                           socket.getfqdn().encode('utf-8'))
         self.server_name = gb.importName(str_server_name,
                                          gb.NameType.principal)
         self.server_creds = gb.acquireCred(self.server_name)[0]
@@ -183,10 +180,10 @@ class TestAcceptContext(unittest.TestCase):
          out_req_flags, out_ttl, delegated_cred, cont_needed) = server_resp
 
         self.server_ctx.shouldnt_be_none()
-        self.server_ctx.should_be_a('PyCapsule')
+        self.server_ctx.should_be_a(gb.SecurityContext)
 
         name.shouldnt_be_none()
-        name.should_be_a('PyCapsule')
+        name.should_be_a(gb.Name)
 
         mech_type.should_be(gb.MechType.kerberos)
 
@@ -198,7 +195,7 @@ class TestAcceptContext(unittest.TestCase):
         out_ttl.should_be_greater_than(0)
 
         if delegated_cred is not None:
-            delegated_cred.should_be_a('PyCapsule')
+            delegated_cred.should_be_a(gb.Creds)
 
         cont_needed.should_be_a(bool)
 
@@ -210,8 +207,8 @@ class TestWrapUnwrap(unittest.TestCase):
 
         self.client_token1 = ctx_resp[3]
         self.client_ctx = ctx_resp[0]
-        str_server_name = (TARGET_SERVICE_NAME + '/' +
-                           socket.getfqdn())
+        str_server_name = (TARGET_SERVICE_NAME + b'/' +
+                           socket.getfqdn().encode('utf-8'))
         self.server_name = gb.importName(str_server_name,
                                          gb.NameType.principal)
         self.server_creds = gb.acquireCred(self.server_name)[0]
@@ -234,28 +231,28 @@ class TestWrapUnwrap(unittest.TestCase):
         gb.deleteSecContext(self.server_ctx)
 
     def test_get_mic(self):
-        mic_token = gb.getMIC(self.client_ctx, "some message")
+        mic_token = gb.getMIC(self.client_ctx, b"some message")
 
         mic_token.shouldnt_be_none()
         mic_token.should_be_a(bytes)
         mic_token.shouldnt_be_empty()
 
     def test_basic_verify_mic(self):
-        mic_token = gb.getMIC(self.client_ctx, "some message")
+        mic_token = gb.getMIC(self.client_ctx, b"some message")
 
-        qop_used = gb.verifyMIC(self.server_ctx, "some message", mic_token)
+        qop_used = gb.verifyMIC(self.server_ctx, b"some message", mic_token)
 
         qop_used.should_be_a(int)
 
         # test a bad MIC
         gb.verifyMIC.should_raise(gb.GSSError, self.server_ctx,
-                                  "some other message", "some invalid mic")
+                                  b"some other message", b"some invalid mic")
 
     def test_bool_verify_mic(self):
-        mic_token = gb.getMIC(self.client_ctx, "some message")
+        mic_token = gb.getMIC(self.client_ctx, b"some message")
 
         (was_valid, qop_used, majs, mins) = gb.verifyMIC(self.server_ctx,
-                                                         "some message",
+                                                         b"some message",
                                                          mic_token,
                                                          True)
 
@@ -265,8 +262,8 @@ class TestWrapUnwrap(unittest.TestCase):
         mins.should_be_a(int)
 
         (was_valid2, qop_used, majs, mins) = gb.verifyMIC(self.server_ctx,
-                                                          "some new message",
-                                                          "some invalid mic",
+                                                          b"some new message",
+                                                          b"some invalid mic",
                                                           True)
 
         was_valid2.should_be_false()
@@ -286,7 +283,7 @@ class TestWrapUnwrap(unittest.TestCase):
         with_conf.should_be_less_than(100)
 
     def test_basic_wrap_unwrap(self):
-        (wrapped_message, conf) = gb.wrap(self.client_ctx, 'test message')
+        (wrapped_message, conf) = gb.wrap(self.client_ctx, b'test message')
 
         conf.should_be_a(bool)
         conf.should_be_true()

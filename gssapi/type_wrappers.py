@@ -1,7 +1,7 @@
 import gssapi.base as gss
 
 
-class GSSName(object):
+class GSSName(gss.Name):
     """
     A GSS Name Object
 
@@ -11,8 +11,18 @@ class GSSName(object):
     good str and repr values.
     """
 
+    @staticmethod
+    def __new__(cls, name, name_type=gss.NameType.hostbased_service,
+                base_name=None):
+        if base_name is None:
+            base_res = gss.importName(name.encode('utf-8'), name_type)
+        else:
+            base_res = base_name
+
+        return super(GSSName, cls).__new__(cls, base_res)
+
     def __init__(self, name, name_type=gss.NameType.hostbased_service,
-                 create_cap=True):
+                 base_name=None):
         """
         Creates a GSSName
 
@@ -26,22 +36,17 @@ class GSSName(object):
         self.name_type = name_type
         self.name = name
 
-        if create_cap:
-            self.capsule = gss.importName(self.name, self.name_type)
-
-    def __del__(self):
-        gss.releaseName(self.capsule)
+    # del isn't needed, because __dealloc__ takes care of it for us
 
     def __str__(self):
         return "{0} ({1})".format(self.name, self.name_type)
 
     def __repr__(self):
-        return "<gss name ({0}): {1}>".format(self.name_type, self.name)
+        return "<gss name ({0}): {1} -- {2}>".format(self.name_type, self.name)
 
     def __eq__(self, target):
         return gss.compareName(self.capsule, target.capsule)
 
     def __deepcopy__(self, memo):
-        cpy = GSSName(self.name, self.name_type, create_cap=False)
-        cpy.capsule = gss.duplicateName(self.capsule)
-        return cpy
+        cpy = gss.duplicateName(self)
+        return type(self)(self.name, self.name_type, base_name=cpy)

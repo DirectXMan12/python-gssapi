@@ -47,6 +47,11 @@ cdef class Name:
     # defined in pxd
     # cdef gss_name_t raw_name
 
+    def __cinit__(self, Name cpy=None):
+        if cpy is not None:
+            self.raw_name = cpy.raw_name
+            cpy.raw_name = NULL  # prevent releasing of the name
+
     def __dealloc__(self):
         # essentially just releaseName(self), but it is unsafe to call
         # methods

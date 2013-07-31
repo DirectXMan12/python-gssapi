@@ -79,6 +79,16 @@ ext_module_message = Extension(
     ]
 )
 
+ext_module_cython_converters = Extension(
+    'gssapi.base.cython_converters',
+    extra_link_args = get_output('krb5-config --libs gssapi').split(),
+    extra_compile_args = get_output('krb5-config --cflags gssapi').split(),
+    sources = [
+        'gssapi/base/cython_converters.pyx',
+#        'gssapi/base/cython_converters.pyx'
+    ]
+)
+
 long_desc = re.sub('\.\. role:: \w+\(code\)\s*\n\s*.+', '',
                    re.sub(r':(python|bash|code):', '',
                           re.sub(r'\.\. code-block:: \w+', '::',
@@ -113,7 +123,8 @@ setup(
         ext_module_names,
         ext_module_sec_contexts,
         ext_module_types,
-        ext_module_message
+        ext_module_message,
+        ext_module_cython_converters
     ],
     install_requires=[
         'flufl.enum >= 4.0'

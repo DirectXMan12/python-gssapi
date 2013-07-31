@@ -79,6 +79,11 @@ cdef class Creds:
     # defined in pxd
     # cdef gss_cred_id_t raw_creds
 
+    def __cinit__(self, Creds cpy=None):
+        if cpy is not None:
+            self.raw_creds = cpy.raw_creds
+            cpy.raw_creds = NULL  # prevent releasing of the creds
+
     def __dealloc__(self):
         # essentially just releaseCred(self), but it is unsafe to call
         # methods

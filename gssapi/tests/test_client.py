@@ -12,8 +12,8 @@ INITIATOR_PRINICIPLE = 'admin'
 class FakeServer(object):
     def __init__(self):
         self.ctx = None
-        str_server_name = (TARGET_SERVICE_NAME + '/' +
-                           socket.getfqdn())
+        str_server_name = (TARGET_SERVICE_NAME.encode('utf-8') + b'/' +
+                           socket.getfqdn().encode('utf-8'))
         self.server_name = gb.importName(str_server_name,
                                          gb.NameType.principal)
         self.server_creds = gb.acquireCred(self.server_name)[0]
@@ -25,10 +25,10 @@ class FakeServer(object):
         return server_resp[3]
 
     def decrypt(self, msg):
-        return gb.unwrap(self.ctx, msg)[0]
+        return gb.unwrap(self.ctx, msg)[0].decode('utf-8')
 
     def encrypt(self, msg):
-        return gb.wrap(self.ctx, msg, True, None)[0]
+        return gb.wrap(self.ctx, msg.encode('utf-8'), True, None)[0]
 
 
 class TestBasicClient(unittest.TestCase):
@@ -44,12 +44,6 @@ class TestBasicClient(unittest.TestCase):
 
         self.client.security_type.should_be(gb.RequirementFlag.confidentiality)
 
-    def test_resolve_mech_type(self):
-        self.client.resolveMechType(gb.MechType.kerberos)
-
-        self.client.mech_type.shouldnt_be_none()
-        self.client.mech_type.should_be_a('PyCapsule')
-
     def test_token_process(self):
         init_token = self.client.setupBaseSecurityContext()
 
@@ -57,7 +51,7 @@ class TestBasicClient(unittest.TestCase):
         init_token.shouldnt_be_empty()
 
         self.client.ctx.shouldnt_be_none()
-        self.client.ctx.should_be_a('PyCapsule')
+        self.client.ctx.should_be_a(gb.SecurityContext)
 
         self.client.last_ttl.should_be_a(int)
 
@@ -66,11 +60,7 @@ class TestBasicClient(unittest.TestCase):
 
         final_token = self.client.updateSecurityContext(server_token)
 
-        try:
-            final_token.should_be_none()
-        except AssertionError:
-            final_token.should_be_a(bytes)
-            final_token.shouldnt_be_empty()
+        final_token.should_be_a(bytes)
 
     def test_encrypt_decrypt(self):
         init_token = self.client.setupBaseSecurityContext()
@@ -84,10 +74,10 @@ class TestBasicClient(unittest.TestCase):
         enc_client_msg.should_be_longer_than('msg1')
 
         dec_client_msg = self.server.decrypt(enc_client_msg)
-        dec_client_msg.should_be(b'msg1')
+        dec_client_msg.should_be('msg1')
 
         enc_server_msg = self.server.encrypt('msg2')
         dec_server_msg = self.client.decrypt(enc_server_msg)
 
-        dec_server_msg.should_be_a(bytes)
-        dec_server_msg.should_be(b'msg2')
+        dec_server_msg.should_be_a(str)
+        dec_server_msg.should_be('msg2')

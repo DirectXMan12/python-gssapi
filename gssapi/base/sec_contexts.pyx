@@ -5,8 +5,6 @@ from gssapi.base.cython_converters cimport *
 from gssapi.base.creds cimport Creds
 from gssapi.base.names cimport Name
 
-from libc.string import memcmp
-
 from gssapi.base.types import MechType, RequirementFlag
 from gssapi.base.misc import GSSError
 
@@ -77,6 +75,11 @@ cdef class SecurityContext:
     # defined in pxd
     # cdef gss_ctx_id_t raw_ctx
 
+    def __cinit__(self, SecurityContext cpy=None):
+        if cpy is not None:
+            self.raw_ctx = cpy.raw_ctx
+            cpy.raw_ctx = NULL  # prevent deletion of the context
+
     def __dealloc__(self):
         # basically just deleteSecContext, but we are not
         # allowed to call methods here
@@ -103,6 +106,9 @@ cdef OM_uint32 c_parse_flags(object flags):
 
     for flag in flags:
         res = res | int(flag)
+
+    return res
+
 
 # TODO(sross): add support for channel bindings
 def initSecContext(Name target_name not None, Creds cred=None,
@@ -149,10 +155,14 @@ def initSecContext(Name target_name not None, Creds cred=None,
         GSSError
     """
     cdef gss_OID mech_oid = c_get_mech_oid(mech_type) if mech_type is not None else GSS_C_NO_OID
-    cdef OM_uint32 req_flags = c_parse_flags(flags or [])
+    cdef OM_uint32 req_flags = c_parse_flags(flags or [
+        RequirementFlag.mutual_authentication,
+        RequirementFlag.out_of_sequence_detection
+        ])
     cdef gss_channel_bindings_t bdng = GSS_C_NO_CHANNEL_BINDINGS
     cdef gss_buffer_desc input_token_buffer = gss_buffer_desc(0, NULL)  # GSS_C_EMPTY_BUFFER
     cdef OM_uint32 input_ttl = ttl
+    cdef gss_ctx_id_t act_ctx = context.raw_ctx if context is not None else GSS_C_NO_CONTEXT
 
     if input_token is not None:
         input_token_buffer.value = input_token
@@ -167,7 +177,7 @@ def initSecContext(Name target_name not None, Creds cred=None,
 
     with nogil:
         maj_stat = gss_init_sec_context(&min_stat, cred.raw_creds,
-                                        &context.raw_ctx,
+                                        &act_ctx,
                                         target_name.raw_name,
                                         mech_oid, req_flags, input_ttl,
                                         bdng, &input_token_buffer,
@@ -177,6 +187,9 @@ def initSecContext(Name target_name not None, Creds cred=None,
 
     if maj_stat == GSS_S_COMPLETE or maj_stat == GSS_S_CONTINUE_NEEDED:
         output_context = context  # we just used a pointer, so reuse it
+        if output_context is None:
+            output_context = SecurityContext()
+            output_context.raw_ctx = act_ctx
         output_token = output_token_buffer.value[:output_token_buffer.length]
         res = (output_context, c_create_mech_type(actual_mech_type[0]),
                c_create_flags_list(ret_flags), output_token,
@@ -221,6 +234,7 @@ def acceptSecContext(input_token, Creds acceptor_cred=None,
     """
     cdef gss_channel_bindings_t bdng = GSS_C_NO_CHANNEL_BINDINGS
     cdef gss_buffer_desc input_token_buffer = gss_buffer_desc(0, NULL)  # GSS_C_EMPTY_BUFFER
+    cdef gss_ctx_id_t act_ctx = context.raw_ctx if context is not None else GSS_C_NO_CONTEXT
 
     if input_token is not None:
         input_token_buffer.value = input_token
@@ -236,7 +250,7 @@ def acceptSecContext(input_token, Creds acceptor_cred=None,
     cdef OM_uint32 maj_stat, min_stat
 
     with nogil:
-        maj_stat = gss_accept_sec_context(&min_stat, &context.raw_ctx,
+        maj_stat = gss_accept_sec_context(&min_stat, &act_ctx,
                                           acceptor_cred.raw_creds,
                                           &input_token_buffer, bdng,
                                           &initiator_name,
@@ -247,10 +261,14 @@ def acceptSecContext(input_token, Creds acceptor_cred=None,
     cdef Name on = Name()
     cdef Creds oc = Creds()
     if maj_stat == GSS_S_COMPLETE or maj_stat == GSS_S_CONTINUE_NEEDED:
+        output_context = context
+        if output_context is None:
+            output_context = SecurityContext()
+            output_context.raw_ctx = act_ctx
         output_token = output_token_buffer.value[:output_token_buffer.length]
         on.raw_name = initiator_name
         oc.raw_creds = delegated_cred
-        res = (context, on, c_create_mech_type(mech_type[0]),
+        res = (output_context, on, c_create_mech_type(mech_type[0]),
                output_token, c_create_flags_list(ret_flags),
                output_ttl, oc,
                maj_stat == GSS_S_CONTINUE_NEEDED)
@@ -260,9 +278,9 @@ def acceptSecContext(input_token, Creds acceptor_cred=None,
         raise GSSError(maj_stat, min_stat)
 
 
-def deleteSecContext(SecurityContext context):
+def deleteSecContext(SecurityContext context not None, local_only=True):
     """
-    deleteSecContext(context) -> bytes
+    deleteSecContext(context) -> bytes or None
     Delete a GSSAPI Security Context.
 
     This method deletes a GSSAPI security context,
@@ -272,17 +290,24 @@ def deleteSecContext(SecurityContext context):
 
     Args:
         context (SecurityContext): the security context in question
+        local_only (bool): should we request local deletion (True), or also
+            remote deletion (False), in which case a token is also returned
 
     Returns:
-        bytes: the output token
+        bytes or None: the output token (if remote deletion is requested)
     
     Raises:
         GSSError
     """
-    cdef gss_buffer_desc output_token = gss_buffer_desc(0, NULL)  # GSS_C_EMPTY_BUFFER
     cdef OM_uint32 maj_stat, min_stat
-    maj_stat = gss_delete_sec_context(&min_stat, &context.raw_ctx,
-                                      &output_token)
+    cdef gss_buffer_desc output_token = gss_buffer_desc(0, NULL)  # GSS_C_EMPTY_BUFFER
+    if not local_only:
+        maj_stat = gss_delete_sec_context(&min_stat, &context.raw_ctx,
+                                          &output_token)
+    else:
+        maj_stat = gss_delete_sec_context(&min_stat, &context.raw_ctx,
+                                          GSS_C_NO_BUFFER)
+
     if maj_stat == GSS_S_COMPLETE:
         res = output_token.value[:output_token.length]
         context.raw_ctx = NULL

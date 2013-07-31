@@ -91,14 +91,11 @@ class BasicGSSClient(object):
 
     .. attribute:: mech_type
 
-       Type: Capsule or None
+       Type: MechanismType or None
 
        Represents the desired mechanism type to be used
        (None uses the default type).
 
-       .. seealso::
-
-          Function :func:`resolveMechType`
     """
 
     def __init__(self, target,
@@ -126,20 +123,6 @@ class BasicGSSClient(object):
         else:
             self.security_type = 0
 
-    def resolveMechType(self, mt):
-        """
-        Sets the current mechanims type
-
-        This method converts a :class:`gssapi.base.types.MechanismType` into
-        a capsule object usable by internal methods, and then sets
-        :attr:`mech_type` to the resulting capsule
-
-        :param mt: the desired mechanism type
-        :type mt: :class:`gssapi.base.types.MechanismType`
-        """
-
-        self.mech_type = gss.getMechanismType(mt)
-
     def setupBaseSecurityContext(self):
         """
         Initializes a default token and security context
@@ -152,11 +135,10 @@ class BasicGSSClient(object):
                   initializing the security context
         """
 
-        resp = gss.initSecContext(self.service_name.capsule,
+        resp = gss.initSecContext(self.service_name,
                                   flags=self.flags,
-                                  channel_bindings=self.channel_bindings,
                                   mech_type=self.mech_type,
-                                  time=self.ttl)
+                                  ttl=self.ttl)
 
         (self.ctx, _, _, self.token, self.last_ttl, _) = resp
         return self.token
@@ -173,18 +155,17 @@ class BasicGSSClient(object):
         :returns: the token resulting from updating the security context
         """
 
-        resp = gss.initSecContext(self.service_name.capsule,
+        resp = gss.initSecContext(self.service_name,
                                   context=self.ctx,
                                   input_token=server_tok,
                                   flags=self.flags,
-                                  channel_bindings=self.channel_bindings,
                                   mech_type=self.mech_type,
-                                  time=self.ttl)
+                                  ttl=self.ttl)
 
         (self.ctx, _, _, self.token, self.last_ttl, _) = resp
         return self.token
 
-    def encrypt(self, msg):
+    def encrypt(self, str_msg):
         """
         Encrypts a message
 
@@ -197,7 +178,7 @@ class BasicGSSClient(object):
         :except GSSClientError: if the requested security level
                                 could not be used
         """
-
+        msg = str_msg.encode('utf-8')
         if self.security_type == gss.RequirementFlag.integrity:
             return gss.wrap(self.ctx, msg, False, None)[0]
         elif self.security_type == gss.RequirementFlag.confidentiality:
@@ -221,7 +202,6 @@ class BasicGSSClient(object):
         :except GSSClientError: if encryption was requested but not used,
                 or if the QoP failed to meet our standards
         """
-
         if self.security_type is not None and self.security_type != 0:
             res, used, _ = gss.unwrap(self.ctx, msg)
             isconf = self.security_type == gss.RequirementFlag.confidentiality
@@ -229,9 +209,9 @@ class BasicGSSClient(object):
                 raise GSSClientError('User requested encryption, '
                                      'but the server sent an unencrypted '
                                      'message!')
-            return res
+            return res.decode('utf-8')
         else:
-            return msg
+            return msg.decode('utf-8')
 
     def __del__(self):
         if self.ctx is not None:
