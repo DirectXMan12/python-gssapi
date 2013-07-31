@@ -85,8 +85,9 @@ cdef class SecurityContext:
         # allowed to call methods here
         cdef OM_uint32 maj_stat, min_stat
         if self.raw_ctx is not NULL:
+            # local deletion only
             maj_stat = gss_delete_sec_context(&min_stat, &self.raw_ctx,
-                                              <gss_buffer_t>GSS_C_EMPTY_BUFFER)
+                                              GSS_C_NO_BUFFER)
             if maj_stat != GSS_S_COMPLETE:
                 raise GSSError(maj_stat, min_stat)
 
