@@ -95,6 +95,9 @@ cdef class SecurityContext:
 
             self.raw_ctx = NULL
 
+    def make_sure_not_null(self):
+        assert self.raw_ctx is not NULL, "raw ctx was null!"
+
 
 cdef inline object c_create_flags_list(OM_uint32 flags):
     return [flag for flag in RequirementFlag if int(flag) & flags > 0]
