@@ -259,4 +259,4 @@ def unwrap(SecurityContext context not None, message):
         gss_release_buffer(&min_stat, &output_buffer)
         return (output_message, <bint>conf_state, qop_state)
     else:
-        raise GSSError
+        raise GSSError(maj_stat, min_stat)

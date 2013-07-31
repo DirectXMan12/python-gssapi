@@ -78,13 +78,15 @@ cdef class SecurityContext:
     def __cinit__(self, SecurityContext cpy=None):
         if cpy is not None:
             self.raw_ctx = cpy.raw_ctx
-            cpy.raw_ctx = NULL  # prevent deletion of the context
+            cpy._free_on_dealloc = False  # prevent deletion of the context
+
+        self._free_on_dealloc = True
 
     def __dealloc__(self):
         # basically just deleteSecContext, but we are not
         # allowed to call methods here
         cdef OM_uint32 maj_stat, min_stat
-        if self.raw_ctx is not NULL:
+        if self.raw_ctx is not NULL and self._free_on_dealloc:
             # local deletion only
             maj_stat = gss_delete_sec_context(&min_stat, &self.raw_ctx,
                                               GSS_C_NO_BUFFER)
