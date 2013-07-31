@@ -269,7 +269,12 @@ def acceptSecContext(input_token, Creds acceptor_cred=None,
         output_token = output_token_buffer.value[:output_token_buffer.length]
         on.raw_name = initiator_name
         oc.raw_creds = delegated_cred
-        res = (output_context, on, c_create_mech_type(mech_type[0]),
+        if mech_type is not NULL:
+            py_mech_type = c_create_mech_type(mech_type[0])
+        else:
+            py_mech_type = None
+
+        res = (output_context, on, py_mech_type,
                output_token, c_create_flags_list(ret_flags),
                output_ttl, oc,
                maj_stat == GSS_S_CONTINUE_NEEDED)
