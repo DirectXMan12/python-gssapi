@@ -7,7 +7,7 @@ try:
 except NameError:
     is_string = lambda x: isinstance(x, str) or isinstance(x, bytes)
 
-class GSSContext(gb.SecurityContext);
+class GSSContext(gss.SecurityContext):
     def __new__(cls, base_ctx, *args, **kwargs):
         return super(GSSContext, cls).__new__(cls, base_ctx)
 
@@ -58,7 +58,7 @@ class GSSContext(gb.SecurityContext);
         return self
 
     @classmethod
-    def accept_new(cls, tok, cred=None,
+    def accept_new(cls, tok, acceptor_cred=None,
                    channel_bindings=None):
         """
         Accept a new security context
@@ -74,11 +74,11 @@ class GSSContext(gb.SecurityContext);
         :rtype: GSSContext
         """
 
-        resp = gss.acceptSecContext(tok, acceptor_cred=cred,
+        resp = gss.acceptSecContext(tok, acceptor_cred=acceptor_cred,
                                     channel_bindings=channel_bindings)
 
         return GSSContext(resp[0],
-                          initiator=GSSName(resp[1])),
+                          initiator=GSSName(base_name=resp[1]),
                           mech=resp[2],
                           token=resp[3],
                           flags=resp[4],
@@ -99,7 +99,7 @@ class GSSContext(gb.SecurityContext);
                           ttl=resp[4], continue_needed=resp[5])
 
 
-class GSSCredentials(gb.Creds):
+class GSSCredentials(gss.Creds):
     def __new__(cls, base_creds):
         return super(GSSCredentials, cls).__new__(cls, base_creds)
 
@@ -182,7 +182,7 @@ class GSSName(gss.Name):
     good str and repr values.
     """
 
-    def __new__(cls, name, name_type=gss.NameType.hostbased_service,
+    def __new__(cls, name=None, name_type=gss.NameType.hostbased_service,
                 base_name=None):
         if base_name is None:
             base_res = gss.importName(name.encode('utf-8'), name_type)
@@ -191,7 +191,7 @@ class GSSName(gss.Name):
 
         return super(GSSName, cls).__new__(cls, base_res)
 
-    def __init__(self, name, name_type=gss.NameType.hostbased_service,
+    def __init__(self, name=None, name_type=gss.NameType.hostbased_service,
                  base_name=None):
         """
         Creates a GSSName
@@ -202,6 +202,11 @@ class GSSName(gss.Name):
         :param name_type: the type of the name
         :type name_type: :class:`gssapi.base.types.NameType`
         """
+
+        if base_name is not None and (name is None):
+            displ_resp = gss.displayName(self)
+            self.name_type = displ_resp[1]
+            self.name = displ_resp[0].decode('utf-8')
 
         self.name_type = name_type
         self.name = name
@@ -235,8 +240,8 @@ class GSSName(gss.Name):
             return cls(obj)
         elif isinstance(obj, cls):
             return obj
-        elif isinstance(obj, gb.Name):
-            name, tp = gb.displayName(obj)
+        elif isinstance(obj, gss.Name):
+            name, tp = gss.displayName(obj)
             return cls(name, tp, base_name=obj)
 
     def __str__(self):
