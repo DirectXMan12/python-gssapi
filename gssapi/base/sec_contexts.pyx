@@ -140,13 +140,13 @@ def initSecContext(Name target_name not None, Creds cred=None,
         mech_type (MechType): the mechanism type for this security context,
             or None for the default mechanism type
         flags ([RequirementFlag]): the flags to request for the security context,
-            or None to use the default set: mutual_authentication and 
+            or None to use the default set: mutual_authentication and
             out_of_sequence_detection
         ttl (int): the request lifetime of the security context
         channel_bindings (ChannelBindings): NCI
         input_token (bytes): the token to use to update the security context,
             or None if you are creating a new context
-    
+
     Returns:
         (SecurityContext, MechType, [RequirementFlag], bytes, int, bool): the
             output security context, the actual mech type, the actual flags
@@ -330,6 +330,37 @@ def inquireContext(SecurityContext context not None):
     else:
         raise GSSError(maj_stat, min_stat)
 
+
+def contextTime(SecurityContext context not None):
+    """
+    contextTime(context) -> int
+    Get the amount of time for which the given context will remain valid.
+
+    This method determines the amount of time for which the given
+    security context will remain valid.  An expired context will
+    give a result of 0.
+
+    Args:
+        context (SecurityContext): the security context in question
+
+    Returns:
+        int: the number of seconds for which the context will be valid
+
+    Raises:
+        GSSError
+    """
+    cdef OM_uint32 ttl
+
+    cdef OM_uint32 maj_stat, min_stat
+
+    maj_stat = gss_context_time(&min_stat, context.raw_ctx, &ttl)
+
+    if maj_stat == GSS_S_COMPLETE:
+        return ttl
+    else:
+        raise GSSError(maj_stat, min_stat)
+
+
 def deleteSecContext(SecurityContext context not None, local_only=True):
     """
     deleteSecContext(context) -> bytes or None
@@ -347,7 +378,7 @@ def deleteSecContext(SecurityContext context not None, local_only=True):
 
     Returns:
         bytes or None: the output token (if remote deletion is requested)
-    
+
     Raises:
         GSSError
     """

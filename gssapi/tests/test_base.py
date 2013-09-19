@@ -112,6 +112,31 @@ class TestBaseUtilities(unittest.TestCase):
         gb.releaseName(name)
         gb.releaseCred(creds)
 
+    def test_context_time(self):
+        target_name = gb.importName(TARGET_SERVICE_NAME)
+        ctx_resp = gb.initSecContext(target_name)
+
+        client_token1 = ctx_resp[3]
+        client_ctx = ctx_resp[0]
+        str_server_name = (TARGET_SERVICE_NAME + b'/' +
+                           socket.getfqdn().encode('utf-8'))
+        server_name = gb.importName(str_server_name,
+                                    gb.NameType.principal)
+        server_creds = gb.acquireCred(server_name)[0]
+        server_resp = gb.acceptSecContext(client_token1,
+                                          acceptor_cred=server_creds)
+        server_tok = server_resp[3]
+
+        client_resp2 = gb.initSecContext(target_name,
+                                         context=client_ctx,
+                                         input_token=server_tok)
+        ctx = client_resp2[0]
+
+        ttl = gb.contextTime(ctx)
+
+        ttl.should_be_a(int)
+        ttl.should_be_greater_than(0)
+
     def test_inquire_context(self):
         target_name = gb.importName(TARGET_SERVICE_NAME)
         ctx_resp = gb.initSecContext(target_name)
