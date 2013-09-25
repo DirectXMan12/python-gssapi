@@ -393,6 +393,68 @@ def processContextToken(SecurityContext context not None, token):
         raise GSSError(maj_stat, min_stat)
 
 
+def importSecContext(token):
+    """
+    importSecContext(token) -> SecurityContext
+    Import a context from another process
+
+    This method imports a security context established in another process
+    by reading the specified token which was output by exportSecContext.
+    """
+    cdef gss_buffer_desc token_buffer = gss_buffer_desc(len(token), token)
+
+    cdef gss_ctx_id_t ctx
+
+    cdef OM_uint32 maj_stat, min_stat 
+
+    with nogil:
+       maj_stat = gss_import_sec_context(&min_stat, &token_buffer, &ctx)
+
+    if maj_stat == GSS_S_COMPLETE:
+        res = SecurityContext()
+        res.raw_ctx = ctx
+        return res
+    else:
+        raise GSSError(maj_stat, min_stat)
+
+
+def exportSecContext(SecurityContext context not None):
+    """
+    exportSecContext(context) -> (bytes, SecurityContext)
+    Export a context for use in another process
+
+    This method exports a security context, deactivating in the current process
+    and creating a token which can then be imported into another process
+    with importSecContext.
+    
+    Warning: this modifies the input context
+
+    Args:
+        context (SecurityContext): the context to send to another process
+
+    Returns:
+        (bytes, SecurityContext): the output token to be imported, and the
+            input security token (now deactivated, same as input context)
+
+    Raises:
+        GSSError
+    """
+    cdef gss_buffer_desc output_token = gss_buffer_desc(0, NULL)
+
+    cdef OM_uint32 maj_stat, min_stat
+
+    with nogil:
+        maj_stat = gss_export_sec_context(&min_stat, &context.raw_ctx,
+                                          &output_token)
+
+    if maj_stat == GSS_S_COMPLETE:
+        res_token = output_token.value[:output_token.length]
+        gss_release_buffer(&min_stat, &output_token)
+        return (res_token, context)
+    else:
+        raise GSSError(maj_stat, min_stat)
+
+
 def deleteSecContext(SecurityContext context not None, local_only=True):
     """
     deleteSecContext(context) -> bytes or None

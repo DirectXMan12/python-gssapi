@@ -306,6 +306,24 @@ class TestWrapUnwrap(unittest.TestCase):
         gb.deleteSecContext(self.client_ctx)
         gb.deleteSecContext(self.server_ctx)
 
+    def test_import_export_sec_context(self):
+        export_resp = gb.exportSecContext(self.client_ctx)
+        export_resp.shouldnt_be_none()
+
+        (tok, inactive_ctx) = export_resp
+
+        tok.should_be_a(bytes)
+        tok.shouldnt_be_empty()
+
+        inactive_ctx.should_be_a(gb.SecurityContext)
+        inactive_ctx.should_be_exactly(self.client_ctx)
+
+        imported_ctx = gb.importSecContext(tok)
+        imported_ctx.shouldnt_be_none()
+        imported_ctx.should_be_a(gb.SecurityContext)
+
+        self.client_ctx = imported_ctx  # ensure that it gets deleted
+
     def test_get_mic(self):
         mic_token = gb.getMIC(self.client_ctx, b"some message")
 
