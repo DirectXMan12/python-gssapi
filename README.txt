@@ -21,6 +21,8 @@ Requirements
 
 * a C compiler (such as GCC)
 
+* Cython (*NEW*, to compile from scratch)
+
 * the `flufl.enum` Python package
 
 * the `nose` package (for tests)
