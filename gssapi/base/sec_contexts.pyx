@@ -361,6 +361,38 @@ def contextTime(SecurityContext context not None):
         raise GSSError(maj_stat, min_stat)
 
 
+def processContextToken(SecurityContext context not None, token):
+    """
+    processContextToken(context, token)
+    Process a token asynchronously
+
+    This method provides a way to process a token, even if the
+    given security context is not expecting one.  For example,
+    if the initiator has the initSecContext return that the context
+    is complete, but the acceptor is unable to accept the context,
+    and wishes to send a token to the initiator, letting the
+    initiator know of the error.
+
+    Args:
+        context (SecurityContext): the security context against which
+            to process the token
+        token (bytes): the token to process
+
+    Raises:
+        GSSError
+    """
+
+    cdef gss_buffer_desc token_buffer = gss_buffer_desc(len(token), token)
+
+    cdef OM_uint32 maj_stat, min_stat
+
+    with nogil:
+        maj_stat = gss_process_context_token(&min_stat, context.raw_ctx, &token_buffer)
+
+    if maj_stat != GSS_S_COMPLETE:
+        raise GSSError(maj_stat, min_stat)
+
+
 def deleteSecContext(SecurityContext context not None, local_only=True):
     """
     deleteSecContext(context) -> bytes or None

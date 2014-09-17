@@ -184,6 +184,10 @@ class TestBaseUtilities(unittest.TestCase):
         is_open.should_be_a(bool)
         is_open.should_be_true()
 
+    def test_process_context_token(self):
+        # TODO(sross): figure out how to write a test for this
+        pass
+
 
 class TestInitContext(unittest.TestCase):
     def setUp(self):
