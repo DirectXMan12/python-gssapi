@@ -87,7 +87,7 @@ class TestBaseUtilities(unittest.TestCase):
         status.should_be_a(bytes)
         status.shouldnt_be_empty()
 
-        ctx.should_be_a(int)
+        ctx.should_be_an_integer()
 
         cont.should_be_a(bool)
         cont.should_be_false()
@@ -107,7 +107,7 @@ class TestBaseUtilities(unittest.TestCase):
         actual_mechs.shouldnt_be_empty()
         actual_mechs.should_include(gb.MechType.kerberos)
 
-        ttl.should_be_a(int)
+        ttl.should_be_an_integer()
 
         gb.releaseName(name)
         gb.releaseCred(creds)
@@ -134,7 +134,7 @@ class TestBaseUtilities(unittest.TestCase):
 
         ttl = gb.contextTime(ctx)
 
-        ttl.should_be_a(int)
+        ttl.should_be_an_integer()
         ttl.should_be_greater_than(0)
 
     def test_inquire_context(self):
@@ -169,7 +169,7 @@ class TestBaseUtilities(unittest.TestCase):
         target_name.shouldnt_be_none()
         target_name.should_be_a(gb.Name)
 
-        ttl.should_be_a(int)
+        ttl.should_be_an_integer()
 
         mech_type.shouldnt_be_none()
         mech_type.should_be(gb.MechType.kerberos)
@@ -318,7 +318,7 @@ class TestWrapUnwrap(unittest.TestCase):
 
         qop_used = gb.verifyMIC(self.server_ctx, b"some message", mic_token)
 
-        qop_used.should_be_a(int)
+        qop_used.should_be_an_integer()
 
         # test a bad MIC
         gb.verifyMIC.should_raise(gb.GSSError, self.server_ctx,
@@ -333,9 +333,9 @@ class TestWrapUnwrap(unittest.TestCase):
                                                          True)
 
         was_valid.should_be_true()
-        qop_used.should_be_a(int)
-        majs.should_be_a(int)
-        mins.should_be_a(int)
+        qop_used.should_be_an_integer()
+        majs.should_be_an_integer()
+        mins.should_be_an_integer()
 
         (was_valid2, qop_used, majs, mins) = gb.verifyMIC(self.server_ctx,
                                                           b"some new message",
@@ -343,17 +343,17 @@ class TestWrapUnwrap(unittest.TestCase):
                                                           True)
 
         was_valid2.should_be_false()
-        qop_used.should_be_a(int)
-        majs.should_be_a(int)
-        mins.should_be_a(int)
+        qop_used.should_be_an_integer()
+        majs.should_be_an_integer()
+        mins.should_be_an_integer()
 
     def test_wrap_size_limit(self):
         with_conf = gb.wrapSizeLimit(self.client_ctx, 100)
         without_conf = gb.wrapSizeLimit(self.client_ctx, 100,
                                         confidential=False)
 
-        with_conf.should_be_a(int)
-        without_conf.should_be_a(int)
+        with_conf.should_be_an_integer()
+        without_conf.should_be_an_integer()
 
         without_conf.should_be_less_than(100)
         with_conf.should_be_less_than(100)
@@ -373,7 +373,7 @@ class TestWrapUnwrap(unittest.TestCase):
         conf.should_be_a(bool)
         conf.should_be_true()
 
-        qop.should_be_a(int)
+        qop.should_be_an_integer()
         qop.should_be_at_least(0)
 
         unwrapped_message.should_be_a(bytes)

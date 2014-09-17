@@ -53,7 +53,7 @@ class TestBasicClient(unittest.TestCase):
         self.client.ctx.shouldnt_be_none()
         self.client.ctx.should_be_a(gb.SecurityContext)
 
-        self.client.last_ttl.should_be_a(int)
+        self.client.last_ttl.should_be_an_integer()
 
         # "send" the token and get one back
         server_token = self.server.process_token(init_token)
@@ -79,5 +79,5 @@ class TestBasicClient(unittest.TestCase):
         enc_server_msg = self.server.encrypt('msg2')
         dec_server_msg = self.client.decrypt(enc_server_msg)
 
-        dec_server_msg.should_be_a(str)
+        dec_server_msg.should_be_a_unicode_string()
         dec_server_msg.should_be('msg2')
