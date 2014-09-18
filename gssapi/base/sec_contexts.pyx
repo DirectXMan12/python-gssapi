@@ -166,6 +166,7 @@ def initSecContext(Name target_name not None, Creds cred=None,
     cdef gss_buffer_desc input_token_buffer = gss_buffer_desc(0, NULL)  # GSS_C_EMPTY_BUFFER
     cdef OM_uint32 input_ttl = ttl
     cdef gss_ctx_id_t act_ctx = context.raw_ctx if context is not None else GSS_C_NO_CONTEXT
+    cdef gss_cred_id_t act_cred = cred.raw_creds if cred is not None else GSS_C_NO_CREDENTIAL
 
     if input_token is not None:
         input_token_buffer.value = input_token
@@ -179,7 +180,7 @@ def initSecContext(Name target_name not None, Creds cred=None,
     cdef OM_uint32 maj_stat, min_stat
 
     with nogil:
-        maj_stat = gss_init_sec_context(&min_stat, cred.raw_creds,
+        maj_stat = gss_init_sec_context(&min_stat, act_cred,
                                         &act_ctx,
                                         target_name.raw_name,
                                         mech_oid, req_flags, input_ttl,
@@ -238,6 +239,7 @@ def acceptSecContext(input_token, Creds acceptor_cred=None,
     cdef gss_channel_bindings_t bdng = GSS_C_NO_CHANNEL_BINDINGS
     cdef gss_buffer_desc input_token_buffer = gss_buffer_desc(0, NULL)  # GSS_C_EMPTY_BUFFER
     cdef gss_ctx_id_t act_ctx = context.raw_ctx if context is not None else GSS_C_NO_CONTEXT
+    cdef gss_cred_id_t act_acceptor_cred = acceptor_cred.raw_creds if acceptor_cred is not None else GSS_C_NO_CREDENTIAL
 
     if input_token is not None:
         input_token_buffer.value = input_token
@@ -254,7 +256,7 @@ def acceptSecContext(input_token, Creds acceptor_cred=None,
 
     with nogil:
         maj_stat = gss_accept_sec_context(&min_stat, &act_ctx,
-                                          acceptor_cred.raw_creds,
+                                          act_acceptor_cred,
                                           &input_token_buffer, bdng,
                                           &initiator_name,
                                           &mech_type, &output_token_buffer,

@@ -80,6 +80,7 @@ cdef extern from "gssapi.h":
     gss_channel_bindings_t GSS_C_NO_CHANNEL_BINDINGS
     gss_qop_t GSS_C_QOP_DEFAULT
     gss_ctx_id_t GSS_C_NO_CONTEXT
+    gss_cred_id_t GSS_C_NO_CREDENTIAL
 
     # OID constants
     # OID name types
