@@ -395,7 +395,7 @@ def processContextToken(SecurityContext context not None, token):
         raise GSSError(maj_stat, min_stat)
 
 
-def importSecContext(token):
+def importSecContext(token not None):
     """
     importSecContext(token) -> SecurityContext
     Import a context from another process

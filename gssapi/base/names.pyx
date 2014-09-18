@@ -65,7 +65,7 @@ cdef class Name:
             self.raw_name = NULL
 
 
-def importName(name, name_type=NameType.hostbased_service):
+def importName(name not None, name_type=NameType.hostbased_service):
     """
     importName(name, name_type=NameType.hostbased_service) -> Name
     Convert a string and a NameType into a GSSAPI name.
@@ -104,7 +104,7 @@ def importName(name, name_type=NameType.hostbased_service):
     else:
         raise GSSError(maj_stat, min_stat)
 
-def displayName(Name name):
+def displayName(Name name not None):
     """
     displayName(name) -> (bytes, NameType)
     Convert a GSSAPI name into its components.
@@ -154,6 +154,12 @@ def compareName(Name name1, Name name2):
     Raises:
         GSSError
     """
+    # check for either value being None
+    if name1 is None and name2 is None:
+        return True
+    elif name1 is None or name2 is None:
+        return False
+
     cdef int is_equal
 
     cdef OM_uint32 maj_stat, min_stat
@@ -167,7 +173,7 @@ def compareName(Name name1, Name name2):
         raise GSSError(maj_stat, min_stat)
 
 
-def exportName(Name name):
+def exportName(Name name not None):
     """
     exportName(name) -> bytes
     Export a GSSAPI Mechanim Name.
@@ -205,7 +211,7 @@ def exportName(Name name):
     else:
         raise GSSError(maj_stat, min_stat)
 
-def canonicalizeName(Name name, mech_type):
+def canonicalizeName(Name name not None, mech_type):
     """
     canoncializeName(name, mech_type) -> Name
     Canonicalize an arbitrary GSSAPI Name into a Mechanism Name
@@ -242,7 +248,7 @@ def canonicalizeName(Name name, mech_type):
         raise GSSError(maj_stat, min_stat)
 
 
-def duplicateName(Name name):
+def duplicateName(Name name not None):
     """
     duplicateName(name) -> Name
     Duplicate a GSSAPI Name
@@ -270,7 +276,7 @@ def duplicateName(Name name):
         raise GSSError(maj_stat, min_stat)
 
 
-def releaseName(Name name):
+def releaseName(Name name not None):
     """
     releaseName(name)
     Release a GSSAPI Name.

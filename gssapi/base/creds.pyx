@@ -97,7 +97,7 @@ cdef class Creds:
             self.raw_creds = NULL
 
 
-def acquireCred(Name name, ttl=0, mechs=None, cred_usage='both'):
+def acquireCred(Name name not None, ttl=0, mechs=None, cred_usage='both'):
     """
     acquireCred(name, ttl=0, mechs=None, cred_usage='both') -> (Creds, [MechType], int)
     Get GSSAPI credentials for the given name and mechanisms.
@@ -157,7 +157,7 @@ def acquireCred(Name name, ttl=0, mechs=None, cred_usage='both'):
         raise GSSError(maj_stat, min_stat)
 
 
-def releaseCred(Creds creds):
+def releaseCred(Creds creds not None):
     """
     releaseCred(creds)
     Release GSSAPI Credentials.
