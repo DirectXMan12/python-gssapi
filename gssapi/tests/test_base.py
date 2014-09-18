@@ -1,14 +1,54 @@
-import unittest
-import should_be.all  # noqa
+import copy
+import os
 import socket
+
+import should_be.all  # noqa
+
 import gssapi.base as gb
+from gssapi.tests import k5test as kt
 
 
 TARGET_SERVICE_NAME = b'host'
-INITIATOR_PRINCIPAL = b'admin'
+FQDN = socket.getfqdn().encode('utf-8')
+SERVICE_PRINCIPAL = TARGET_SERVICE_NAME + b'/' + FQDN
 
 
-class TestBaseUtilities(unittest.TestCase):
+class _GSSAPIKerberosTestCase(kt.KerberosTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(_GSSAPIKerberosTestCase, cls).setUpClass()
+        svc_princ = SERVICE_PRINCIPAL.decode("UTF-8")
+
+        cls.realm.kinit(svc_princ, flags=['-k'])
+
+        cls._init_env()
+
+        cls.USER_PRINC = cls.realm.user_princ.split('@')[0].encode("UTF-8")
+        cls.ADMIN_PRINC = cls.realm.admin_princ.split('@')[0].encode("UTF-8")
+
+    @classmethod
+    def _init_env(cls):
+        cls._saved_env = copy.deepcopy(os.environ)
+        for k, v in cls.realm.env.items():
+            os.environ[k] = v
+
+    @classmethod
+    def _restore_env(cls):
+        for k in copy.deepcopy(os.environ):
+            if k in cls._saved_env:
+                os.environ[k] = cls._saved_env[k]
+            else:
+                del os.environ[k]
+
+        cls._saved_env = None
+
+    @classmethod
+    def tearDownClass(cls):
+        super(_GSSAPIKerberosTestCase, cls).tearDownClass()
+        cls._restore_env()
+
+
+class TestBaseUtilities(_GSSAPIKerberosTestCase):
     def test_indicate_mechs(self):
         mechs = gb.indicateMechs()
 
@@ -27,7 +67,7 @@ class TestBaseUtilities(unittest.TestCase):
         gb.releaseName(imported_name)
 
     def test_canonicalize_export_name(self):
-        imported_name = gb.importName(INITIATOR_PRINCIPAL,
+        imported_name = gb.importName(self.ADMIN_PRINC,
                                       gb.NameType.principal)
 
         canonicalized_name = gb.canonicalizeName(imported_name,
@@ -67,7 +107,8 @@ class TestBaseUtilities(unittest.TestCase):
     def test_compare_name(self):
         service_name1 = gb.importName(TARGET_SERVICE_NAME)
         service_name2 = gb.importName(TARGET_SERVICE_NAME)
-        init_name = gb.importName(INITIATOR_PRINCIPAL, gb.NameType.principal)
+        init_name = gb.importName(self.ADMIN_PRINC,
+                                  gb.NameType.principal)
 
         gb.compareName(service_name1, service_name2).should_be_true()
         gb.compareName(service_name2, service_name1).should_be_true()
@@ -93,8 +134,7 @@ class TestBaseUtilities(unittest.TestCase):
         cont.should_be_false()
 
     def test_acquire_creds(self):
-        name = gb.importName((TARGET_SERVICE_NAME + b'/' +
-                              socket.getfqdn().encode('utf-8')),
+        name = gb.importName(SERVICE_PRINCIPAL,
                              gb.NameType.principal)
         cred_resp = gb.acquireCred(name)
         cred_resp.shouldnt_be_none()
@@ -118,9 +158,7 @@ class TestBaseUtilities(unittest.TestCase):
 
         client_token1 = ctx_resp[3]
         client_ctx = ctx_resp[0]
-        str_server_name = (TARGET_SERVICE_NAME + b'/' +
-                           socket.getfqdn().encode('utf-8'))
-        server_name = gb.importName(str_server_name,
+        server_name = gb.importName(SERVICE_PRINCIPAL,
                                     gb.NameType.principal)
         server_creds = gb.acquireCred(server_name)[0]
         server_resp = gb.acceptSecContext(client_token1,
@@ -143,9 +181,7 @@ class TestBaseUtilities(unittest.TestCase):
 
         client_token1 = ctx_resp[3]
         client_ctx = ctx_resp[0]
-        str_server_name = (TARGET_SERVICE_NAME + b'/' +
-                           socket.getfqdn().encode('utf-8'))
-        server_name = gb.importName(str_server_name,
+        server_name = gb.importName(SERVICE_PRINCIPAL,
                                     gb.NameType.principal)
         server_creds = gb.acquireCred(server_name)[0]
         server_resp = gb.acceptSecContext(client_token1,
@@ -189,7 +225,7 @@ class TestBaseUtilities(unittest.TestCase):
         pass
 
 
-class TestInitContext(unittest.TestCase):
+class TestInitContext(_GSSAPIKerberosTestCase):
     def setUp(self):
         self.target_name = gb.importName(TARGET_SERVICE_NAME)
 
@@ -220,7 +256,7 @@ class TestInitContext(unittest.TestCase):
         gb.deleteSecContext(ctx)
 
 
-class TestAcceptContext(unittest.TestCase):
+class TestAcceptContext(_GSSAPIKerberosTestCase):
 
     def setUp(self):
         self.target_name = gb.importName(TARGET_SERVICE_NAME)
@@ -230,9 +266,7 @@ class TestAcceptContext(unittest.TestCase):
         self.client_ctx = ctx_resp[0]
         self.client_ctx.shouldnt_be_none()
 
-        str_server_name = (TARGET_SERVICE_NAME + b'/' +
-                           socket.getfqdn().encode('utf-8'))
-        self.server_name = gb.importName(str_server_name,
+        self.server_name = gb.importName(SERVICE_PRINCIPAL,
                                          gb.NameType.principal)
         self.server_creds = gb.acquireCred(self.server_name)[0]
 
@@ -276,16 +310,14 @@ class TestAcceptContext(unittest.TestCase):
         cont_needed.should_be_a(bool)
 
 
-class TestWrapUnwrap(unittest.TestCase):
+class TestWrapUnwrap(_GSSAPIKerberosTestCase):
     def setUp(self):
         self.target_name = gb.importName(TARGET_SERVICE_NAME)
         ctx_resp = gb.initSecContext(self.target_name)
 
         self.client_token1 = ctx_resp[3]
         self.client_ctx = ctx_resp[0]
-        str_server_name = (TARGET_SERVICE_NAME + b'/' +
-                           socket.getfqdn().encode('utf-8'))
-        self.server_name = gb.importName(str_server_name,
+        self.server_name = gb.importName(SERVICE_PRINCIPAL,
                                          gb.NameType.principal)
         self.server_creds = gb.acquireCred(self.server_name)[0]
         server_resp = gb.acceptSecContext(self.client_token1,
