@@ -127,6 +127,8 @@ class GSSCredentials(gss.Creds):
         behave like those of :func:`gssapi.base.impl.acquireCred`,
         except as noted here.
 
+        NOTE: Requires S4U support
+
         :param GSSName name: the name to impersonate
         :param usage: the cred usage
         :type usage: 'both', 'initiate', 'accept'
@@ -138,6 +140,10 @@ class GSSCredentials(gss.Creds):
         :returns: a new set of impersonating credentials
         :rtype: GSSCredentials
         """
+        if not hasattr(gss, 'acquireCredImpersonateName'):
+            raise AttributeError("No S4U support found in the "
+                                 "native GSSAPI library")
+
         if 'ttl' not in kwargs or kwargs['ttl'] == None:
             kwargs['ttl'] = self.ttl
         if 'reuse_mechs' in kwargs:
