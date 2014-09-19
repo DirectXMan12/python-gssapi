@@ -89,7 +89,7 @@ cdef object c_create_mech_type(gss_OID_desc mech_type):
     else:
         return None
 
-cdef object c_create_mech_list(gss_OID_set mech_set):
+cdef object c_create_mech_list(gss_OID_set mech_set, bint free=True):
     """
     Convert a set of GSS mechanism OIDs to a list of MechType s.
     """
@@ -99,5 +99,9 @@ cdef object c_create_mech_list(gss_OID_set mech_set):
         mech_type = c_create_mech_type(mech_set.elements[i])
         if mech_type is not None:
             l.append(mech_type)
+
+    cdef OM_uint32 tmp_min_stat
+    if free:
+        gss_release_oid_set(&tmp_min_stat, &mech_set)
 
     return l

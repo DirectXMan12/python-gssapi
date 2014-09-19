@@ -32,9 +32,7 @@ def indicateMechs():
     maj_stat = gss_indicate_mechs(&min_stat, &mech_set)
 
     if maj_stat == GSS_S_COMPLETE:
-        mech_list = c_create_mech_list(mech_set)
-        gss_release_oid_set(&min_stat, &mech_set)
-        return mech_list
+        return c_create_mech_list(mech_set)
     else:
         raise GSSError(maj_stat, min_stat)
 
