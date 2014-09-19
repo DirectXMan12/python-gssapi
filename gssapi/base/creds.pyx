@@ -224,6 +224,85 @@ def acquireCredImpersonateName(Creds impersonator_cred not None,
     else:
         raise GSSError(maj_stat, min_stat)
 
+
+def addCredImpersonateName(Creds input_cred not None,
+                           Creds impersonator_cred not None,
+                           Name name not None, mech not None,
+                           cred_usage='initiate', initiator_ttl=0,
+                           acceptor_ttl=0):
+    """
+    addCredImpersonateName(input_cred, impersonator_cred, name, mech=None, cred_usage='initiate', initiator_ttl=0, acceptor_ttl=0) -> (Creds, [MechType], int, int)
+    Add a credential-element to a credential by impersonating another name.
+
+    This method is one of the ways to use S4U2Self.  It adds credentials
+    to the input credentials by impersonating another name using a set of
+    proxy credentials.  The impersonator credentials must have a usage of
+    'both' or 'initiate'.
+
+    Args:
+        input_cred (Cred): the set of credentials to which to add the new
+            credentials
+        impersonator_cred (Cred): the credentials with permissions to impersonate
+            the target name
+        name (Name): the name to impersonate
+        mech (MechType): the desired mechanism.  Note that this is both
+            singular and required, unlike acquireCredImpersonateName
+        cred_usage (str): the usage type for the credentials: may be
+            'initiate', 'accept', or 'both'
+        initiator_ttl (int): the lifetime for the credentials to remain valid
+            when using them to initiate security contexts
+        acceptor_ttl (int): the lifetime for the credentials to remain valid
+            when using them to accept security contexts
+
+    Returns:
+        (Creds, [MechType], int, int): the resulting credentials, the actual
+            mechanisms with which they may be used, the actual initiator TTL,
+            and the actual acceptor TTL
+
+    Raises:
+        GSSError
+    """
+    cdef gss_OID desired_mech = c_get_mech_oid(mech)
+    cdef OM_uint32 input_initiator_ttl = initiator_ttl
+    cdef OM_uint32 input_acceptor_ttl = acceptor_ttl
+    cdef gss_cred_usage_t usage
+    cdef gss_name_t c_name = name.raw_name
+
+    if cred_usage == 'initiate':
+        usage = GSS_C_INITIATE
+    elif cred_usage == 'accept':
+        usage = GSS_C_ACCEPT
+    else:
+        usage = GSS_C_BOTH
+
+    cdef gss_cred_id_t creds
+    cdef gss_OID_set actual_mechs
+    cdef OM_uint32 actual_initiator_ttl
+    cdef OM_uint32 actual_acceptor_ttl
+
+    cdef OM_uint32 maj_stat, min_stat
+
+    with nogil:
+        maj_stat = gss_add_cred_impersonate_name(&min_stat,
+                                                 input_cred.raw_creds,
+                                                 impersonator_cred.raw_creds,
+                                                 name.raw_name, desired_mech,
+                                                 usage, input_initiator_ttl,
+                                                 input_acceptor_ttl, &creds,
+                                                 &actual_mechs,
+                                                 &actual_initiator_ttl,
+                                                 &actual_acceptor_ttl)
+
+    cdef Creds rc = Creds()
+    if maj_stat == GSS_S_COMPLETE:
+        rc.raw_creds = creds
+        return (rc, c_create_mech_list(actual_mechs),
+                actual_initiator_ttl, actual_acceptor_ttl)
+    else:
+        raise GSSError(maj_stat, min_stat)
+
+
+
 def releaseCred(Creds creds not None):
     """
     releaseCred(creds)
