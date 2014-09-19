@@ -224,6 +224,66 @@ class TestBaseUtilities(_GSSAPIKerberosTestCase):
         # TODO(sross): figure out how to write a test for this
         pass
 
+    def test_add_cred_impersonate_name(self):
+        target_name = gb.importName(TARGET_SERVICE_NAME)
+        client_ctx_resp = gb.initSecContext(target_name)
+        client_token = client_ctx_resp[3]
+        del client_ctx_resp  # free all the things (except the token)!
+
+        server_name = gb.importName(SERVICE_PRINCIPAL,
+                                    gb.NameType.principal)
+        server_creds = gb.acquireCred(server_name, cred_usage='both')[0]
+        server_ctx_resp = gb.acceptSecContext(client_token,
+                                              acceptor_cred=server_creds)
+
+        input_creds = gb.Creds()
+        imp_resp = gb.addCredImpersonateName(input_creds,
+                                             server_creds,
+                                             server_ctx_resp[1],
+                                             gb.MechType.kerberos)
+
+        imp_resp.shouldnt_be_none()
+
+        imp_creds, actual_mechs, output_init_ttl, output_accept_ttl = imp_resp
+
+        imp_creds.shouldnt_be_none()
+        imp_creds.should_be_a(gb.Creds)
+
+        actual_mechs.shouldnt_be_empty()
+        actual_mechs.should_include(gb.MechType.kerberos)
+
+        output_init_ttl.should_be_a(int)
+        output_accept_ttl.should_be_a(int)
+
+    def test_acquire_creds_impersonate_name(self):
+        target_name = gb.importName(TARGET_SERVICE_NAME)
+        client_ctx_resp = gb.initSecContext(target_name)
+        client_token = client_ctx_resp[3]
+        del client_ctx_resp  # free all the things (except the token)!
+
+        server_name = gb.importName(SERVICE_PRINCIPAL,
+                                    gb.NameType.principal)
+        server_creds = gb.acquireCred(server_name, cred_usage='both')[0]
+        server_ctx_resp = gb.acceptSecContext(client_token,
+                                              acceptor_cred=server_creds)
+
+        imp_resp = gb.acquireCredImpersonateName(server_creds,
+                                                 server_ctx_resp[1])
+
+        imp_resp.shouldnt_be_none()
+
+        imp_creds, actual_mechs, output_ttl = imp_resp
+
+        imp_creds.shouldnt_be_none()
+        imp_creds.should_be_a(gb.Creds)
+
+        actual_mechs.shouldnt_be_empty()
+        actual_mechs.should_include(gb.MechType.kerberos)
+
+        output_ttl.should_be_a(int)
+        # no need to explicitly release any more -- we can just rely on
+        # __dealloc__ (b/c cython)
+
 
 class TestInitContext(_GSSAPIKerberosTestCase):
     def setUp(self):

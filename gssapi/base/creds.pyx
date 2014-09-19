@@ -21,16 +21,6 @@ cdef extern from "gssapi.h":
     OM_uint32 gss_release_cred(OM_uint32 *min_stat,
                                gss_cred_id_t *creds) nogil
 
-    OM_uint32 gss_acquire_cred_impersonate_name(OM_uint32 *min_stat,
-                                                const gss_cred_id_t impersonator_creds,
-                                                const gss_name_t name,
-                                                OM_uint32 ttl,
-                                                const gss_OID_set mechs,
-                                                gss_cred_usage_t cred_usage,
-                                                gss_cred_id_t *output_creds,
-                                                gss_OID_set *actual_mechs,
-                                                OM_uint32 *actual_ttl) nogil
-
     OM_uint32 gss_add_cred(OM_uint32 *min_stat,
                            const gss_cred_id_t base_creds,
                            const gss_name_t name,
@@ -42,19 +32,6 @@ cdef extern from "gssapi.h":
                            gss_OID_set *actual_mechs,
                            OM_uint32 *actual_initiator_ttl,
                            OM_uint32 *actual_acceptor_ttl) nogil
-
-    OM_uint32 gss_add_cred_impersonate_name(OM_uint32 *min_stat,
-                                            gss_cred_id_t base_creds,
-                                            const gss_cred_id_t impersonator_creds,
-                                            const gss_name_t name,
-                                            const gss_OID mech,
-                                            gss_cred_usage_t cred_usage,
-                                            OM_uint32 initiator_ttl,
-                                            OM_uint32 acceptor_ttl,
-                                            gss_cred_id_t *output_creds,
-                                            gss_OID_set *actual_mechs,
-                                            OM_uint32 *actual_initiator_ttl,
-                                            OM_uint32 *actual_acceptor_ttl) nogil
 
     OM_uint32 gss_inquire_cred(OM_uint32 *min_stat,
                                const gss_cred_id_t creds,

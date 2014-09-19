@@ -39,6 +39,15 @@ ext_module_creds = Extension(
     ]
 )
 
+ext_module_s4u = Extension(
+    'gssapi.base.s4u',
+    extra_link_args = get_output('krb5-config --libs gssapi').split(),
+    extra_compile_args = get_output('krb5-config --cflags gssapi').split(),
+    sources = [
+        'gssapi/base/s4u.pyx',
+    ]
+)
+
 ext_module_names = Extension(
     'gssapi.base.names',
     extra_link_args = get_output('krb5-config --libs gssapi').split(),
@@ -124,7 +133,8 @@ setup(
         ext_module_sec_contexts,
         ext_module_types,
         ext_module_message,
-        ext_module_cython_converters
+        ext_module_cython_converters,
+        ext_module_s4u,
     ],
     install_requires=[
         'flufl.enum >= 4.0'
