@@ -74,7 +74,8 @@ cdef extern from "gssapi.h":
 
     # null/default constants
     gss_OID GSS_C_NO_OID
-    gss_buffer_desc GSS_C_EMPTY_BUFFER
+    # NB(sross): because of how Cython creates variables, this is useless
+    # gss_buffer_desc GSS_C_EMPTY_BUFFER
     gss_buffer_t GSS_C_NO_BUFFER
     gss_OID_set GSS_C_NO_OID_SET
     gss_channel_bindings_t GSS_C_NO_CHANNEL_BINDINGS
