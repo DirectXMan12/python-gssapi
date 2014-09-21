@@ -20,8 +20,8 @@ cdef extern from "gssapi.h":
     ctypedef gss_OID_set_desc* gss_OID_set
 
     ctypedef struct gss_buffer_desc:
-      size_t length
-      char *value
+        size_t length
+        char *value
     ctypedef gss_buffer_desc* gss_buffer_t
 
     cdef struct gss_name_struct:
@@ -100,6 +100,7 @@ cdef extern from "gssapi.h":
     OM_uint32 GSS_C_INTEG_FLAG
     OM_uint32 GSS_C_ANON_FLAG
     OM_uint32 GSS_C_TRANS_FLAG
+
 
 cdef extern from "gssapi/gssapi_krb5.h":
     gss_OID gss_mech_krb5

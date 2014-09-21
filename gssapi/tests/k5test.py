@@ -233,7 +233,6 @@ class K5Realm(object):
     def run(self, args, env=None, input=None, expected_code=0):
         if env is None:
             env = self.env
-        #return _run_cmd(args, env, **keywords)
 
         if input:
             infile = subprocess.PIPE
@@ -317,9 +316,9 @@ class K5Realm(object):
         assert(self._kadmind_proc is None)
         dump_path = os.path.join(self.tmpdir, 'dump')
         self._kadmind_proc = self._start_daemon([self.kadmind, '-nofork', '-W',
-                                                '-p', self.kdb5_util,
-                                                '-K', self.kprop,
-                                                '-F', dump_path], env,
+                                                 '-p', self.kdb5_util,
+                                                 '-K', self.kprop,
+                                                 '-F', dump_path], env,
                                                 'starting...')
 
     def stop_kadmind(self):

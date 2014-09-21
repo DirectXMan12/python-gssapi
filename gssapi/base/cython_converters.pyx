@@ -1,12 +1,12 @@
-from gssapi.base.cython_types cimport *
-from gssapi.base.types import MechType, NameType
 from libc.string cimport memcmp
+
+from gssapi.base.cython_types cimport *
+
+from gssapi.base.types import MechType, NameType
 
 
 cdef gss_OID_set c_get_mech_oid_set(object mechs):
-    """
-    Convert a list of MechType values into an OID set
-    """
+    """Convert a list of MechType values into an OID set."""
 
     cdef gss_OID_set res_set
     cdef OM_uint32 min_stat
@@ -19,9 +19,8 @@ cdef gss_OID_set c_get_mech_oid_set(object mechs):
 
 
 cdef gss_OID c_get_name_type_oid(object name_type):
-    """
-    Get a GSS name type OID from a NameType.
-    """
+    """Get a GSS name type OID from a NameType."""
+
     if name_type is NameType.hostbased_service:
         return GSS_C_NT_HOSTBASED_SERVICE
     elif name_type is NameType.principal:
@@ -42,9 +41,8 @@ cdef gss_OID c_get_name_type_oid(object name_type):
 
 
 cdef object c_create_name_type(gss_OID name_type):
-    """
-    Convert a GSSAPI name type OID into a NameType
-    """
+    """Convert a GSSAPI name type OID into a NameType."""
+
     if c_compare_oids(name_type, GSS_C_NT_HOSTBASED_SERVICE):
         return NameType.hostbased_service
     elif c_compare_oids(name_type, GSS_KRB5_NT_PRINCIPAL_NAME):
@@ -64,9 +62,8 @@ cdef object c_create_name_type(gss_OID name_type):
 
 
 cdef gss_OID c_get_mech_oid(object mech_type):
-    """
-    Get a mechanism's OID from a MechType.
-    """
+    """Get a mechanism's OID from a MechType."""
+
     if mech_type is MechType.kerberos:
         return gss_mech_krb5
     else:
@@ -74,25 +71,22 @@ cdef gss_OID c_get_mech_oid(object mech_type):
         return GSS_C_NO_OID
 
 cdef inline bint c_compare_oids(gss_OID a, gss_OID b):
-    """
-    Compare two OIDs to see if they are the same.
-    """
+    """Compare two OIDs to see if they are the same."""
+
     return (a.length == b.length and
-                not memcmp(a.elements, b.elements, a.length))
+            not memcmp(a.elements, b.elements, a.length))
 
 cdef object c_create_mech_type(gss_OID_desc mech_type):
-    """
-    Convert a GSS mechanism OID into a MechType.
-    """
+    """Convert a GSS mechanism OID into a MechType."""
+
     if c_compare_oids(&mech_type, gss_mech_krb5):
         return MechType.kerberos
     else:
         return None
 
 cdef object c_create_mech_list(gss_OID_set mech_set, bint free=True):
-    """
-    Convert a set of GSS mechanism OIDs to a list of MechType s.
-    """
+    """Convert a set of GSS mechanism OIDs to a list of MechType values."""
+
     l = []
     cdef i
     for i in range(mech_set.count):

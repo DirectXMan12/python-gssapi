@@ -1,11 +1,7 @@
+import six
+
 import gssapi.base as gss
 
-is_string = None
-
-try:
-    is_string = lambda x: isinstance(x, basestring)
-except NameError:
-    is_string = lambda x: isinstance(x, str) or isinstance(x, bytes)
 
 class GSSContext(gss.SecurityContext):
     def __new__(cls, base_ctx, *args, **kwargs):
@@ -97,8 +93,8 @@ class GSSContext(gss.SecurityContext):
                                   channel_bindings=channel_bindings,
                                   context=context)
 
-        return GSSContext(resp[0], mech_type=resp[1], flags=resp[2], token=resp[3],
-                          ttl=resp[4], continue_needed=resp[5])
+        return GSSContext(resp[0], mech_type=resp[1], flags=resp[2],
+                          token=resp[3], ttl=resp[4], continue_needed=resp[5])
 
     def release(self, local_only=True):
         """
@@ -120,7 +116,7 @@ class GSSCredentials(gss.Creds):
     def impersonate(self, *args, **kwargs):
         """
         Use these credentials to impersonate a name
-        
+
         This method returns a new set of credentials
         obtained by impersonating "name" using
         the current set of credentials.  All parameters
@@ -144,7 +140,7 @@ class GSSCredentials(gss.Creds):
             raise AttributeError("No S4U support found in the "
                                  "native GSSAPI library")
 
-        if 'ttl' not in kwargs or kwargs['ttl'] == None:
+        if 'ttl' not in kwargs or kwargs['ttl'] is None:
             kwargs['ttl'] = self.ttl
         if 'reuse_mechs' in kwargs:
             if kwargs['reuse_mechs']:
@@ -181,6 +177,7 @@ class GSSCredentials(gss.Creds):
         res.mechs = resp[1]
 
         return res
+
 
 class GSSName(gss.Name):
     """
@@ -246,7 +243,7 @@ class GSSName(gss.Name):
                 raise ValueError('No valid arguments were passed to'
                                  '{0}.create_or_wrap'.format(cls.__name__))
 
-        if is_string(obj):
+        if isinstance(obj, six.string_types):
             return cls(obj)
         elif isinstance(obj, cls):
             return obj

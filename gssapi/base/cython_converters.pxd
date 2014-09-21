@@ -1,5 +1,7 @@
-from gssapi.base.cython_types cimport *
+from gssapi.base.cython_types cimport gss_OID, gss_OID_set, gss_OID_desc
+
 from gssapi.base.types import MechType, NameType
+
 
 cdef gss_OID_set c_get_mech_oid_set(object mechs)
 cdef gss_OID c_get_name_type_oid(object name_type)
