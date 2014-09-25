@@ -76,7 +76,7 @@ cdef class Creds:
             self.raw_creds = NULL
 
 
-def acquireCred(Name name not None, ttl=None, mechs=None, cred_usage='both'):
+def acquireCred(Name name, ttl=None, mechs=None, cred_usage='both'):
     """
     acquireCred(name, ttl=None, mechs=None, cred_usage='both') -> (Creds,
                                                                    [MechType],
@@ -88,7 +88,8 @@ def acquireCred(Name name not None, ttl=None, mechs=None, cred_usage='both'):
     be specified.
 
     Args:
-        name (Name): the name for which to acquire the credentials
+        name (Name): the name for which to acquire the credentials (or None
+            for the "no name" functionality)
         ttl (int): the lifetime for the credentials (or None for indefinite)
         mechs ([MechType]): the desired mechanisms for which the credentials
             should work, or None for the default set
@@ -112,7 +113,12 @@ def acquireCred(Name name not None, ttl=None, mechs=None, cred_usage='both'):
 
     cdef OM_uint32 input_ttl = c_py_ttl_to_c(ttl)
     cdef gss_cred_usage_t usage
-    cdef gss_name_t c_name = name.raw_name
+
+    cdef gss_name_t c_name
+    if name is None:
+        c_name = GSS_C_NO_NAME
+    else:
+        c_name = name.raw_name
 
     if cred_usage == 'initiate':
         usage = GSS_C_INITIATE

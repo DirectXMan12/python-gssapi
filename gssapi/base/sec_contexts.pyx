@@ -114,6 +114,7 @@ cdef OM_uint32 c_parse_flags(object flags):
 
 
 # TODO(sross): add support for channel bindings
+# TODO(sross): figure out whether GSS_C_NO_NAME can be passed in here
 def initSecContext(Name target_name not None, Creds cred=None,
                    SecurityContext context=None,
                    mech_type=None,
@@ -340,6 +341,8 @@ def inquireContext(SecurityContext context not None):
     the initiator and target names, as well as the TTL, mech type,
     flags, and its current state (open vs closed).
 
+    Note: the target name may be None if it would have been GSS_C_NO_NAME
+
     Args:
         context (SecurityContext): the context in question
 
@@ -367,10 +370,15 @@ def inquireContext(SecurityContext context not None):
                                    &locally_init, &is_complete)
 
     cdef Name sn = Name()
-    cdef Name tn = Name()
+    cdef Name tn
     if maj_stat == GSS_S_COMPLETE:
         sn.raw_name = src_name
-        tn.raw_name = target_name
+
+        if target_name == GSS_C_NO_NAME:
+            tn = None
+        else:
+            tn = Name()
+            tn.raw_name = target_name
 
         if ttl == GSS_C_INDEFINITE:
             output_ttl = None
