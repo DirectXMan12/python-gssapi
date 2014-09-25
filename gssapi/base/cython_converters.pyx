@@ -99,3 +99,19 @@ cdef object c_create_mech_list(gss_OID_set mech_set, bint free=True):
         gss_release_oid_set(&tmp_min_stat, &mech_set)
 
     return l
+
+
+cdef inline OM_uint32 c_py_ttl_to_c(object ttl):
+    """Converts None to GSS_C_INDEFINITE, otherwise returns input."""
+    if ttl is None:
+        return GSS_C_INDEFINITE
+    else:
+        return <OM_uint32>ttl
+
+
+cdef inline object c_c_ttl_to_py(OM_uint32 ttl):
+    """Converts GSS_C_INDEFINITE to None, otherwise return input."""
+    if ttl == GSS_C_INDEFINITE:
+        return None
+    else:
+        return ttl
